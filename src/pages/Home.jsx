@@ -1,4 +1,5 @@
 import React from "react";
+import Header from "../components/Header";
 
 const Home = () => {
   return (
@@ -11,19 +12,13 @@ const Home = () => {
       />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+      <div className="absolute inset-0 bg-black bg-opacity-50 z-0"></div>
 
       {/* Header */}
-      <header className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4 z-10">
-        <h1 className="text-white text-2xl font-bold">Ma Gestion Immo</h1>
-        <div className="space-x-6">
-          <a href="#signup" className="text-white hover:underline text-lg">Inscription</a>
-          <a href="#login" className="text-white hover:underline text-lg">Connexion</a>
-        </div>
-      </header>
+      <Header />
 
       {/* Titre central */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-10 px-4">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center z-20 px-4">
         <h2 className="text-white text-3xl md:text-5xl font-semibold mb-4">
           Gérez vos biens immobiliers sans stress
         </h2>
