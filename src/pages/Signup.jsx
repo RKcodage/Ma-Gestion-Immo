@@ -74,7 +74,7 @@ const Signup = () => {
             value={form.email}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
           <input
@@ -84,7 +84,7 @@ const Signup = () => {
             value={form.password}
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
           <input
@@ -93,7 +93,7 @@ const Signup = () => {
             placeholder="Prénom"
             value={form.profile.firstName}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
           <input
@@ -102,7 +102,7 @@ const Signup = () => {
             placeholder="Nom"
             value={form.profile.lastName}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
           <input
@@ -111,7 +111,7 @@ const Signup = () => {
             placeholder="Nom d'utilisateur"
             value={form.profile.username}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
           <input
@@ -120,16 +120,18 @@ const Signup = () => {
             placeholder="Téléphone"
             value={form.profile.phone}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-          >
-            {loading ? "Inscription en cours..." : "S'inscrire"}
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-48 bg-primary text-white py-4 rounded-lg hover:bg-primary/90 shadow-lg transition"
+            >
+              {loading ? "Inscription en cours..." : "S'inscrire"}
+            </button>
+          </div>
 
           {error && (
             <p className="text-red-600 text-sm text-center">
