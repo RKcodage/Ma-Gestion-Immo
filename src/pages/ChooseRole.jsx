@@ -23,8 +23,7 @@ const ChooseRole = () => {
     assignRoleMutation.mutate(role, {
       onSuccess: (data) => {
         toast.success("Rôle assigné avec succès !");
-        if (role === "Propriétaire") navigate("/owner");
-        else if (role === "Locataire") navigate("/tenant");
+        if (role === "Propriétaire" || role === "Locataire") navigate("/dashboard");
       },
       onError: (error) => {
         toast.error(error.message);
