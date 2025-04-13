@@ -6,7 +6,7 @@ const RoleRoute = ({ children }) => {
   const token = useAuthStore((state) => state.token);
 
   if (!token || !user) return <Navigate to="/login" replace />;
-  if (user.role) return <Navigate to={user.role === "Propriétaire" ? "/owner" : "/tenant"} replace />;
+  if (user.role) return <Navigate to="/dashboard" replace />;
 
   return children;
 };

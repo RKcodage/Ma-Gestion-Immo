@@ -9,6 +9,9 @@ import Signup from './pages/Signup'
 import Login from './pages/Login';
 import ChooseRole from './pages/ChooseRole';
 
+// Layouts
+import DashboardLayout from './layouts/DashboardLayout';
+
 // Protected routes
 import RoleRoute from './routes/RoleRoute';
 
@@ -27,6 +30,7 @@ function App() {
             </RoleRoute>
           }
         />
+        <Route path="/dashboard" element={<DashboardLayout />}c/>
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
