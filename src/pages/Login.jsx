@@ -22,8 +22,8 @@ const Login = () => {
     try {
       await login(form.email, form.password);
       toast.success("Connexion réussie !", {
-        onClose: () => navigate("/"),
-        autoClose: 3000,
+        onClose: () => navigate("/role"),
+        autoClose: 1000,
       });
     } catch (err) {
       console.error("Erreur lors de la connexion", err);
