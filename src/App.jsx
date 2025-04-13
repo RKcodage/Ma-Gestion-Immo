@@ -9,8 +9,9 @@ import Signup from './pages/Signup'
 import Login from './pages/Login';
 import ChooseRole from './pages/ChooseRole';
 
-// Layouts
+// Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
+import DashboardHome from "./components/dashboard/DashboardHome";
 
 // Protected routes
 import RoleRoute from './routes/RoleRoute';
@@ -30,7 +31,10 @@ function App() {
             </RoleRoute>
           }
         />
-        <Route path="/dashboard" element={<DashboardLayout />}c/>
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<DashboardHome />} />
+        </Route>
+
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
