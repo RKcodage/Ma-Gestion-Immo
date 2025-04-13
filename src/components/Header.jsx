@@ -7,7 +7,7 @@ const Header = () => {
       <h1 className="text-white text-2xl font-bold">Ma Gestion Immo</h1>
       <div className="space-x-6">
         <NavLink to="/signup" className="text-white hover:underline text-lg underline-offset-4">Inscription</NavLink>
-        <NavLink to="/" className="text-white hover:underline text-lg underline-offset-4">Connexion</NavLink>
+        <NavLink to="/login" className="text-white hover:underline text-lg underline-offset-4">Connexion</NavLink>
       </div>
     </header>
   );

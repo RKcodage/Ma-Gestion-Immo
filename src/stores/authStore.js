@@ -50,6 +50,32 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // LOGIN
+  login: async (email, password) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch("http://localhost:4000/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erreur lors de la connexion");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data));
+      set({ user: data, token: data.token, loading: false });
+      return data;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
   // LOGOUT
   logout: () => {
     localStorage.removeItem("token");
