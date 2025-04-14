@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 
@@ -6,6 +6,7 @@ const UserAccount = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const fileInputRef = useRef();
+  const [avatarError, setAvatarError] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["user", user?._id],
@@ -38,19 +39,19 @@ const UserAccount = () => {
       });
 
       if (!res.ok) throw new Error("Échec de l'envoi de l'avatar");
-      
-      const updated = await res.json();
-useAuthStore.setState((state) => ({
-  user: {
-    ...state.user,
-    profile: {
-      ...state.user.profile,
-      avatar: updated.avatar,
-    },
-  },
-}));
-await refetch();
 
+      const updated = await res.json();
+      useAuthStore.setState((state) => ({
+        user: {
+          ...state.user,
+          profile: {
+            ...state.user.profile,
+            avatar: updated.avatar,
+          },
+        },
+      }));
+      setAvatarError(false); // réinitialise l'état d'erreur si nouvel avatar
+      await refetch();
     } catch (err) {
       console.error("Erreur avatar:", err.message);
     }
@@ -65,6 +66,13 @@ await refetch();
   if (isError) return <p>Erreur lors du chargement des informations.</p>;
 
   const profile = data?.profile || {};
+  const initials = (
+    ((profile.firstName?.[0] || "") + (profile.lastName?.[0] || "")).toUpperCase() || "?"
+  );
+  const fullName = `${profile.firstName || ""} ${profile.lastName || ""}`.trim();
+
+  const hasValidAvatar =
+    profile.avatar && typeof profile.avatar === "string" && !avatarError;
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded">
@@ -79,22 +87,24 @@ await refetch();
             ref={fileInputRef}
             onChange={handleFileChange}
           />
-          {profile.avatar ? (
+          {hasValidAvatar ? (
             <img
               src={`http://localhost:4000${profile.avatar}`}
               alt="Avatar"
               className="w-32 h-32 rounded-full object-cover border"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "";
-              }}
+              onError={() => setAvatarError(true)}
             />
           ) : (
-            <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-white text-2xl font-semibold uppercase">
-              {(profile.firstName?.[0] || "U") + (profile.lastName?.[0] || "")}
+            <div
+              title={fullName}
+              className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center text-white text-2xl font-semibold uppercase"
+            >
+              {initials}
             </div>
           )}
-          <span className="absolute bottom-2 right-1 bg-primary text-white text-xs px-2 py-1 rounded-full shadow">+</span>
+          <span className="absolute bottom-2 right-1 bg-primary text-white text-xs px-2 py-1 rounded-full shadow">
+            +
+          </span>
         </label>
       </div>
 
