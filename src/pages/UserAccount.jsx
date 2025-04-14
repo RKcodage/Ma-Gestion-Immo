@@ -207,7 +207,7 @@ const UserAccount = () => {
 
       {/* Card Informations professionnelles */}
       <div className="max-w-3xl mx-auto mt-8 p-6 bg-white shadow rounded">
-        <h3 className="text-xl font-semibold mb-4">Informations professionnelles</h3>
+        <h3 className="text-xl font-semibold mb-4">Informations personnelles</h3>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium">Nom de l'entreprise</label>
