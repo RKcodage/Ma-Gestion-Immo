@@ -8,6 +8,7 @@ import Home from './pages/Home'
 import Signup from './pages/Signup'
 import Login from './pages/Login';
 import ChooseRole from './pages/ChooseRole';
+import UserAccount from './pages/UserAccount';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -33,6 +34,7 @@ function App() {
         />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />
+          <Route path="account" element={<UserAccount />} />
         </Route>
 
       </Routes>
