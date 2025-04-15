@@ -4,6 +4,7 @@ import useAuthStore from "../stores/authStore";
 import { fetchOwnerByUserId, updateOwner } from "../api/owner";
 import { toast } from "react-toastify";
 import AccountUserInfos from "../components/account/AccountUserInfos";
+import AccountRoleInfos from "../components/account/AccountRoleInfos";
 
 const UserAccount = () => {
   const user = useAuthStore((state) => state.user);
@@ -126,74 +127,7 @@ const UserAccount = () => {
           handleFileChange={handleFileChange}
         />
       
-
-      {/* Card Informations professionnelles */}
-      <div className="max-w-3xl mx-auto mt-8 p-6 bg-white shadow rounded">
-        <h3 className="text-xl font-semibold mb-4">Informations personnelles</h3>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="block text-sm font-medium">Nom de l'entreprise</label>
-            <input
-              type="text"
-              name="companyName"
-              value={form.companyName || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded"
-              placeholder="Ex : SCI Les Lilas"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Numéro SIRET</label>
-            <input
-              type="text"
-              name="companyNumber"
-              value={form.companyNumber || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded"
-              placeholder="Ex : 123 456 789 00012"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Téléphone pro</label>
-            <input
-              type="text"
-              name="companyPhone"
-              value={form.companyPhone || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Adresse de facturation</label>
-            <input
-              type="text"
-              name="billingAddress"
-              value={form.billingAddress || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Statut</label>
-            <select
-              name="status"
-              value={form.status || ""}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded"
-            >
-              <option value="">-- Sélectionnez --</option>
-              <option value="Particulier">Particulier</option>
-              <option value="Professionnel">Professionnel</option>
-            </select>
-          </div>
-          <button
-            type="submit"
-            className="bg-primary text-white px-4 py-2 rounded"
-          >
-            Enregistrer
-          </button>
-        </form>
-      </div>
+      <AccountRoleInfos form={form} setForm={setForm} />
     </div>
   );
 };
