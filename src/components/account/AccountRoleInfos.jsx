@@ -15,7 +15,7 @@ const AccountRoleInfos = ({ form, setForm }) => {
   const mutation = useMutation({
     mutationFn: (values) => updateOwner({ userId: user._id, values, token }),
     onSuccess: () => {
-      toast.success("Informations enregistrées ✅");
+      toast.success("Informations enregistrées");
     },
   });
 
