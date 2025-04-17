@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+// Stores
 import useAuthStore from "../stores/authStore";
-import { fetchOwnerByUserId, updateOwner } from "../api/owner";
-import { toast } from "react-toastify";
+// Api
+import { fetchOwnerByUserId } from "../api/owner";
+import { fetchUserById, uploadAvatar } from "../api/user";
+// Components
 import AccountUserInfos from "../components/account/AccountUserInfos";
 import AccountRoleInfos from "../components/account/AccountRoleInfos";
 
@@ -20,21 +23,6 @@ const UserAccount = () => {
     status: "",
   });
 
-  // Get user infos
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["user", user?._id],
-    queryFn: async () => {
-      const res = await fetch(`http://localhost:4000/user/${user._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) throw new Error("Erreur lors du chargement");
-      return res.json();
-    },
-    enabled: !!user?._id,
-  });
-
   // Get owner infos by userId
   const { data: ownerData } = useQuery({
     queryKey: ["owner", user._id],
@@ -42,6 +30,13 @@ const UserAccount = () => {
     enabled: !!user._id && !!token,
   });
 
+  // Get user infos by userId
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["user", user?._id],
+    queryFn: () => fetchUserById(user._id, token),
+    enabled: !!user?._id,
+  });
+  
   // Set form with data 
   useEffect(() => {
     if (ownerData) {
@@ -55,43 +50,14 @@ const UserAccount = () => {
     }
   }, [ownerData]);
 
-  const mutation = useMutation({
-    mutationFn: (values) => updateOwner({ userId: user._id, values, token }),
-    onSuccess: () => {
-      toast.success("Informations enregistrées");
-    },
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    mutation.mutate(form);
-  };
-
   // Upload avatar
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const formData = new FormData();
-    formData.append("avatar", file);
-
+  
     try {
-      const res = await fetch("http://localhost:4000/user/avatar", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Échec de l'envoi de l'avatar");
-
-      const updated = await res.json();
+      const updated = await uploadAvatar({ file, token });
+  
       useAuthStore.setState((state) => ({
         user: {
           ...state.user,
@@ -101,16 +67,13 @@ const UserAccount = () => {
           },
         },
       }));
+  
       setAvatarError(false);
-      await refetch();
+      await refetch(); // pour mettre à jour les autres infos si besoin
     } catch (err) {
       console.error("Erreur avatar:", err.message);
     }
   };
-
-  useEffect(() => {
-    if (user?._id) refetch();
-  }, [user, refetch]);
 
   if (!user) return null;
   if (isLoading) return <p>Chargement...</p>;
