@@ -1,11 +1,10 @@
+// ... tes imports
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-// Stores
 import useAuthStore from "../stores/authStore";
-// Api
 import { fetchOwnerByUserId } from "../api/owner";
+import { fetchTenantByUserId } from "../api/tenant";
 import { fetchUserById, uploadAvatar } from "../api/user";
-// Components
 import AccountUserInfos from "../components/account/AccountUserInfos";
 import AccountRoleInfos from "../components/account/AccountRoleInfos";
 
@@ -15,31 +14,29 @@ const UserAccount = () => {
   const fileInputRef = useRef();
   const [avatarError, setAvatarError] = useState(false);
 
-  const [form, setForm] = useState({
-    companyName: "",
-    companyNumber: "",
-    companyPhone: "",
-    billingAddress: "",
-    status: "",
-  });
+  const [form, setForm] = useState({});
 
-  // Get owner infos by userId
   const { data: ownerData } = useQuery({
     queryKey: ["owner", user._id],
     queryFn: () => fetchOwnerByUserId(user._id, token),
-    enabled: !!user._id && !!token,
+    enabled: !!user._id && user.role === "Propriétaire",
   });
 
-  // Get user infos by userId
+  const { data: tenantData } = useQuery({
+    queryKey: ["tenant", user._id],
+    queryFn: () => fetchTenantByUserId(user._id, token),
+    enabled: !!user._id && user.role === "Locataire",
+  });
+
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["user", user?._id],
+    queryKey: ["user", user._id],
     queryFn: () => fetchUserById(user._id, token),
     enabled: !!user?._id,
   });
-  
-  // Set form with data 
+
+  // Set form selon le rôle
   useEffect(() => {
-    if (ownerData) {
+    if (user.role === "Propriétaire" && ownerData) {
       setForm({
         companyName: ownerData.companyName || "",
         companyNumber: ownerData.companyNumber || "",
@@ -47,17 +44,29 @@ const UserAccount = () => {
         billingAddress: ownerData.billingAddress || "",
         status: ownerData.status || "",
       });
+    } else if (user.role === "Locataire" && tenantData) {
+      setForm({
+        address: tenantData.address || "",
+        birthDate: tenantData.birthDate || "",
+        employmentStatus: tenantData.employmentStatus || "",
+        guarantor: tenantData.guarantor || false,
+        visaleGuarantee: {
+          enabled: tenantData.visaleGuarantee?.enabled || false,
+          contractNumber: tenantData.visaleGuarantee?.contractNumber || "",
+          validityStart: tenantData.visaleGuarantee?.validityStart || "",
+          validityEnd: tenantData.visaleGuarantee?.validityEnd || "",
+        },
+      });
     }
-  }, [ownerData]);
+  }, [ownerData, tenantData, user.role]);
 
-  // Upload avatar
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-  
+
     try {
       const updated = await uploadAvatar({ file, token });
-  
+
       useAuthStore.setState((state) => ({
         user: {
           ...state.user,
@@ -67,9 +76,9 @@ const UserAccount = () => {
           },
         },
       }));
-  
+
       setAvatarError(false);
-      await refetch(); // pour mettre à jour les autres infos si besoin
+      await refetch();
     } catch (err) {
       console.error("Erreur avatar:", err.message);
     }
@@ -84,12 +93,12 @@ const UserAccount = () => {
       <h2 className="text-2xl font-bold mb-4">Mon compte</h2>
 
       <AccountUserInfos
-          email={data?.email}
-          avatarError={avatarError}
-          fileInputRef={fileInputRef}
-          handleFileChange={handleFileChange}
-        />
-      
+        email={data?.email}
+        avatarError={avatarError}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+      />
+
       <AccountRoleInfos form={form} setForm={setForm} />
     </div>
   );
