@@ -20,11 +20,15 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await login(form.email, form.password);
-      toast.success("Connexion réussie !", {
-        onClose: () => navigate("/role"),
-        autoClose: 1000,
-      });
+      const userData = await login(form.email, form.password);
+      toast.success("Connexion réussie !", { autoClose: 1000 });
+
+      // Redirected if user has a role 
+      if (userData.role) {
+        navigate("/dashboard");
+      } else {
+        navigate("/role");
+      }
     } catch (err) {
       console.error("Erreur lors de la connexion", err);
       toast.error("Échec de la connexion : " + err.message);
