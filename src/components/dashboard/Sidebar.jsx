@@ -19,14 +19,14 @@ const Sidebar = () => {
       <nav className="flex flex-col gap-2">
         {user.role === "Propriétaire" ? (
           <>
-            <Link to="/dashboard" className={commonClasses("/dashboard")}>Dashboard</Link>
-            <Link to="/dashboard/proprietes" className={commonClasses("/dashboard/proprietes")}>Mes propriétés</Link>
+            <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
+            <Link to="/dashboard/proprietes" className={commonClasses("/dashboard/proprietes")}>Propriétés</Link>
             <Link to="/dashboard/locataires" className={commonClasses("/dashboard/locataires")}>Locataires</Link>
           </>
         ) : (
           <>
-            <Link to="/dashboard" className={commonClasses("/dashboard")}>Mon espace</Link>
-            <Link to="/dashboard/baux" className={commonClasses("/dashboard/baux")}>Mes baux</Link>
+            <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
+            <Link to="/dashboard/baux" className={commonClasses("/dashboard/baux")}>Baux</Link>
             <Link to="/dashboard/documents" className={commonClasses("/dashboard/documents")}>Documents</Link>
           </>
         )}
