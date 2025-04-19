@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { useMutation } from "@tanstack/react-query";
 import useAuthStore from "./authStore";
 
+// Create store
 const useRoleStore = create((set) => ({
   loading: false,
   error: null,
@@ -9,8 +10,10 @@ const useRoleStore = create((set) => ({
   setError: (error) => set({ error }),
 }));
 
+// Assign a role
 export const useAssignRole = () => {
   const token = useAuthStore.getState().token;
+  const setUser = useAuthStore.getState().setUser;
   const { setLoading, setError } = useRoleStore.getState();
 
   return useMutation({
@@ -31,9 +34,13 @@ export const useAssignRole = () => {
       if (!response.ok)
         throw new Error(data.error || "Erreur assignation rôle");
 
-      return data;
+      return role;
     },
-    onSuccess: () => setLoading(false),
+    onSuccess: (role) => {
+      const currentUser = useAuthStore.getState().user;
+      setUser({ ...currentUser, role }); // Update of user's role
+      setLoading(false);
+    },
     onError: (error) => {
       setError(error.message);
       setLoading(false);
