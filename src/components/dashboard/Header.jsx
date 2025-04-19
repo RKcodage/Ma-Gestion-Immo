@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Menu } from "lucide-react";
+import { ChevronDown, Home } from "lucide-react";
 import useAuthStore from "../../stores/authStore";
-import useSidebarStore from "../..//stores/sidebarStore";
+import useSidebarStore from "../../stores/sidebarStore";
 
 const Header = () => {
   const user = useAuthStore((state) => state.user);
@@ -16,14 +16,14 @@ const Header = () => {
   return (
     <header className="w-full bg-white shadow px-6 py-4 flex justify-between items-center relative z-50">
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
-        <button
-          onClick={toggleSidebar}
-          className="bg-white border rounded-full p-1 shadow-sm hover:shadow transition"
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="w-5 h-5 text-gray-600" />
+      <button
+    onClick={toggleSidebar}
+    className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
+    aria-label="Toggle sidebar"
+  >
+          <Home className="w-5 h-5 text-gray-600" />
         </button>
+        <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
       </div>
 
       <div className="relative">
