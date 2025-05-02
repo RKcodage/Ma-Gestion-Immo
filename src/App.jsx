@@ -9,6 +9,8 @@ import Signup from './pages/Signup'
 import Login from './pages/Login';
 import ChooseRole from './pages/ChooseRole';
 import UserAccount from './pages/UserAccount';
+import Properties from './pages/Properties';
+import PropertyDetails from './pages/PropertyDetails';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -35,6 +37,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="account" element={<UserAccount />} />
+          <Route path="properties" element={<Properties />}/>
+          <Route path="property/:propertyId" element={<PropertyDetails />}/>
         </Route>
 
       </Routes>
