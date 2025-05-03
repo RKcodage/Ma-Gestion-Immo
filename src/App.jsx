@@ -16,12 +16,16 @@ import PropertyDetails from './pages/PropertyDetails';
 import DashboardLayout from './layouts/DashboardLayout';
 import DashboardHome from "./components/dashboard/DashboardHome";
 
+// Import utils
+import ScrollToTop from './utils/ScrollToTop';
+
 // Protected routes
 import RoleRoute from './routes/RoleRoute';
 
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
