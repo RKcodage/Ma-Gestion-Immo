@@ -13,7 +13,7 @@ const DashboardLayout = () => {
       <Header />
       <div className="flex flex-1 overflow-hidden">
         {sidebarOpen && <Sidebar />}
-        <main className="flex-1 p-6 overflow-y-auto bg-gray-50">
+        <main id="main-scroll" className="flex-1 p-6 overflow-y-auto bg-gray-50">
           <Outlet />
         </main>
       </div>
