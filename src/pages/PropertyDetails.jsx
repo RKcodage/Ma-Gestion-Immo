@@ -1,12 +1,31 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// Api
 import { getPropertyById } from "../api/property";
+import {
+  getUnitsWithLeaseCount,
+  updateUnit,
+  deleteUnit,
+} from "../api/unit";
+// Stores
 import useAuthStore from "../stores/authStore";
-import { useEffect } from "react";
+// Components
+import UnitCard from "../components/properties/units/UnitCard";
+// Modals
+import AddUnitModal from "../components/modals/AddUnitModal";
+import ConfirmModal from "../components/modals/ConfirmModal";
+import EditUnitModal from "../components/modals/EditUnitModal";
 
 export default function PropertyDetails() {
   const { propertyId } = useParams();
   const token = useAuthStore((state) => state.token);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [unitToDelete, setUnitToDelete] = useState(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [unitToEdit, setUnitToEdit] = useState(null);
+  const queryClient = useQueryClient();
 
   const { data: property, isLoading, isError } = useQuery({
     queryKey: ["property", propertyId],
@@ -14,17 +33,52 @@ export default function PropertyDetails() {
     enabled: !!token,
   });
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+  const {
+    data: units = [],
+    isLoading: unitsLoading,
+    isError: unitsError,
+  } = useQuery({
+    queryKey: ["units", propertyId],
+    queryFn: () => getUnitsWithLeaseCount(propertyId, token),
+    enabled: !!token,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (unitId) => deleteUnit(unitId, token),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["units", propertyId]);
+      setConfirmDeleteOpen(false);
+    },
+    onError: () => {
+      alert("Erreur lors de la suppression.");
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ unitId, updatedData }) => updateUnit({ unitId, values: updatedData, token }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["units", propertyId]);
+      setEditModalOpen(false);
+      setUnitToEdit(null);
+    },
+    onError: () => {
+      alert("Erreur lors de la mise à jour.");
+    },
+  });
+
+  const confirmDelete = () => {
+    if (unitToDelete) {
+      deleteMutation.mutate(unitToDelete._id);
+    }
+  };
 
   if (isLoading) return <p>Chargement des informations...</p>;
   if (isError || !property) return <p>Erreur : propriété introuvable</p>;
 
   return (
-    <div className="px-6 space-y-6">
-      {/* Fil d’Ariane */}
-      <nav className="text-sm text-gray-600 flex items-center space-x-2">
+    <div className="px-6">
+      {/* BreadCrumb */}
+      <nav className="text-sm text-gray-600 flex items-center space-x-2 mb-6">
         <Link to="/dashboard" className="hover:underline text-primary font-medium">Tableau de bord</Link>
         <span>&gt;</span>
         <Link to="/dashboard/properties" className="hover:underline text-primary font-medium">Propriétés</Link>
@@ -32,9 +86,10 @@ export default function PropertyDetails() {
         <span className="text-gray-800 font-semibold">Détails de la propriété</span>
       </nav>
 
-      <h1 className="text-2xl font-bold">Détails de la propriété</h1>
+      <h1 className="mb-6 text-2xl font-bold">Détails de la propriété</h1>
 
-      <div className="bg-white rounded shadow p-4 border space-y-2">
+      {/* Property infos */}
+      <div className="bg-white rounded shadow p-4 border space-y-2 relative">
         <p><strong>Adresse :</strong> {property.address}</p>
         <p><strong>Ville :</strong> {property.city}</p>
         <p><strong>Code postal :</strong> {property.postalCode}</p>
@@ -45,17 +100,87 @@ export default function PropertyDetails() {
         <p><strong>Loyer :</strong> {property.rent} €</p>
         <p><strong>Charges :</strong> {property.charges} €</p>
         <p><strong>Occupée :</strong> {property.isOccupied ? "Oui" : "Non"}</p>
+
+        {/* Buttons */}
+        <div className="absolute bottom-4 right-4 flex gap-3">
+          <button
+            onClick={() => setAddModalOpen(true)}
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+          >
+            + Ajouter une unité
+          </button>
+          <button className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600">
+            + Créer un bail
+          </button>
+        </div>
       </div>
 
-      {/* Zone pour création */}
-      <div className="flex gap-4 pt-6">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-          + Ajouter une unité
-        </button>
-        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          + Créer un bail
-        </button>
+      {/* List of units */}
+      <div className="pt-6 space-y-4">
+        <h2 className="mb-6 text-xl font-semibold">Unités de cette propriété</h2>
+
+        {unitsLoading ? (
+          <p>Chargement des unités...</p>
+        ) : unitsError ? (
+          <p>Erreur lors du chargement des unités.</p>
+        ) : units.length === 0 ? (
+          <p className="text-gray-500 text-sm">Aucune unité pour cette propriété.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {units.map((unit) => (
+              <UnitCard
+                key={unit._id}
+                unit={unit}
+                onDelete={() => {
+                  setUnitToDelete(unit);
+                  setConfirmDeleteOpen(true);
+                }}
+                onEdit={() => {
+                  setUnitToEdit(unit);
+                  setEditModalOpen(true);
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Add unit modal */}
+      {addModalOpen && (
+        <AddUnitModal
+          open={addModalOpen}
+          onClose={() => setAddModalOpen(false)}
+          propertyId={propertyId}
+          token={token}
+        />
+      )}
+
+      {/* Edit unit modal */}
+      {editModalOpen && unitToEdit && (
+        <EditUnitModal
+          open={editModalOpen}
+          onClose={() => {
+            setEditModalOpen(false);
+            setUnitToEdit(null);
+          }}
+          unit={unitToEdit}
+          onSubmit={(updatedData) =>
+            updateMutation.mutate({ unitId: unitToEdit._id, updatedData })
+          }
+        />
+      )}
+
+      {/* Confirm delete modal */}
+      {confirmDeleteOpen && (
+        <ConfirmModal
+          title="Supprimer cette unité ?"
+          message="Cette action est irréversible."
+          confirmLabel="Supprimer"
+          cancelLabel="Annuler"
+          onConfirm={confirmDelete}
+          onCancel={() => setConfirmDeleteOpen(false)}
+        />
+      )}
     </div>
   );
 }
