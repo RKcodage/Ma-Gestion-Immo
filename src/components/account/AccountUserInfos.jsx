@@ -134,7 +134,7 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
           />
           {hasValidAvatar ? (
             <img
-              src={`http://localhost:4000${user.profile.avatar}`}
+              src={user.profile.avatar}
               alt="Avatar"
               className="w-32 h-32 rounded-full object-cover border"
               onError={() => avatarError(true)}

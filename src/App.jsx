@@ -11,6 +11,7 @@ import ChooseRole from './pages/ChooseRole';
 import UserAccount from './pages/UserAccount';
 import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
+import Leases from './pages/Leases';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -43,6 +44,7 @@ function App() {
           <Route path="account" element={<UserAccount />} />
           <Route path="properties" element={<Properties />}/>
           <Route path="property/:propertyId" element={<PropertyDetails />}/>
+          <Route path="leases" element={<Leases />}/>
         </Route>
 
       </Routes>

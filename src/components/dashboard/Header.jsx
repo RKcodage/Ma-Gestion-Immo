@@ -33,7 +33,7 @@ const Header = () => {
         >
           {user?.profile?.avatar ? (
             <img
-              src={`http://localhost:4000${user.profile.avatar}`}
+              src={user.profile.avatar}
               alt="Avatar"
               className="w-10 h-10 rounded-full object-cover border"
             />
