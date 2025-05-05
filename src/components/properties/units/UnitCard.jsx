@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import { FileText, Home, MoreVertical } from "lucide-react";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "../../components/ui/tooltip";
 
-export default function UnitCard({ unit, onDelete, onEdit }) {
+export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="relative bg-white border rounded-lg shadow-sm p-4 space-y-2 w-full max-w-md">
-      {/* Bouton menu 3 points */}
+      {/* Dots menu */}
       <div className="absolute top-2 right-2">
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
@@ -51,12 +57,25 @@ export default function UnitCard({ unit, onDelete, onEdit }) {
       {unit.chargesAmount && <p className="text-sm text-gray-600"><strong>Charges :</strong> {unit.chargesAmount} €</p>}
       {unit.description && <p className="text-sm text-gray-600"><strong>Description :</strong> {unit.description}</p>}
 
-      <div className="flex items-center gap-1 text-sm text-gray-700 pt-2">
-        <FileText className="w-4 h-4" />
-        {unit.leaseCount > 0
-          ? `${unit.leaseCount} bail${unit.leaseCount > 1 ? "s" : ""}`
-          : "Aucun bail"}
-      </div>
+      <TooltipProvider>
+        <div className="flex items-center gap-1 text-sm text-gray-700 pt-2">
+          <FileText className="w-4 h-4 text-primary" />
+          {unit.leaseCount > 0 ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button className="text-primary" onClick={() => onLeaseClick(unit._id)}>
+                  {unit.leaseCount} bail{unit.leaseCount > 1 ? "s" : ""}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Voir les baux de cette unité</p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <span>Aucun bail</span>
+          )}
+        </div>
+      </TooltipProvider>
     </div>
   );
 }
