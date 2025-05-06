@@ -64,7 +64,6 @@ export default function Leases() {
 
   const confirmDelete = () => {
     if (leaseToDelete) {
-      // Appelle ici ta mutation deleteLease
       console.log("Suppression du bail :", leaseToDelete._id);
       setConfirmDeleteOpen(false);
     }
