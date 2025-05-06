@@ -20,13 +20,14 @@ const Sidebar = () => {
         {user.role === "Propriétaire" ? (
           <>
             <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
-            <Link to="/dashboard/proprietes" className={commonClasses("/dashboard/proprietes")}>Propriétés</Link>
-            <Link to="/dashboard/locataires" className={commonClasses("/dashboard/locataires")}>Locataires</Link>
+            <Link to="/dashboard/properties" className={commonClasses("/dashboard/proprietes")}>Propriétés</Link>
+            <Link to="/dashboard/leases" className={commonClasses("/dashboard/leases")}>Baux</Link>
+            <Link to="/dashboard/documents" className={commonClasses("/dashboard/documents")}>Documents</Link>
           </>
         ) : (
           <>
             <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
-            <Link to="/dashboard/baux" className={commonClasses("/dashboard/baux")}>Baux</Link>
+            <Link to="/dashboard/leases" className={commonClasses("/dashboard/leases")}>Baux</Link>
             <Link to="/dashboard/documents" className={commonClasses("/dashboard/documents")}>Documents</Link>
           </>
         )}

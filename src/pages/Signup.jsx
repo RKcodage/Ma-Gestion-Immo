@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import useAuthStore from "../stores/authStore";
+import { ArrowLeft } from "lucide-react";
 
 const Signup = () => {
   const [form, setForm] = useState({
@@ -63,7 +64,16 @@ const Signup = () => {
       </div>
 
       {/* Signup form */}
-      <div className="w-[60%] flex items-center justify-center px-8">
+      <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
+        {/* Flèche retour */}
+        <Link
+          to="/"
+          className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Retour</span>
+        </Link>
+
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
           <h2 className="text-2xl font-bold text-gray-800 text-center">Créer un compte</h2>
 
