@@ -1,10 +1,12 @@
 import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown, Home, Bell } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../../stores/authStore";
 import useSidebarStore from "../../stores/sidebarStore";
 import { fetchNotifications, markNotificationAsRead } from "../../api/notification";
+import NotificationIcon from "../icons/NotificationIcon";
+import HomeIcon from "../icons/HomeIcon";
 import useClickOutside from "../../hooks/useClickOutside";
 
 const Header = () => {
@@ -45,58 +47,59 @@ const Header = () => {
           className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
           aria-label="Toggle sidebar"
         >
-          <Home className="w-5 h-5 text-gray-600" />
+          <HomeIcon className="w-5 h-5 text-gray-800" />
         </button>
         <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
       </div>
 
-      <div className="flex items-center gap-2 relative">
-  {/* Bell icon with badge */}
-  <div className="relative flex items-center justify-center h-10 w-10" ref={notifRef}>
-    <button
-      className="relative"
-      onClick={() => setNotifOpen((prev) => !prev)}
-    >
-      <Bell className="w-5 h-5 text-gray-600" />
-      {unreadCount > 0 && (
-        <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-          {unreadCount}
-        </span>
-      )}
-    </button>
+      <div className="flex items-center gap-1 relative">
+        {/* Bell icon with badge */}
+        <div className="relative flex items-center justify-center h-10 w-10" ref={notifRef}>
+          <button
+            className="relative"
+            onClick={() => setNotifOpen((prev) => !prev)}
+          >
+            <NotificationIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
+            {/* <Bell className="w-5 h-5 text-gray-800" /> */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                {unreadCount}
+              </span>
+            )}
+          </button>
 
-    {notifOpen && (
-      <div className="absolute top-9 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
-        {notifications.length === 0 ? (
-          <p className="p-4 text-gray-500 text-sm text-center">Aucune notification</p>
-        ) : (
-          <ul className="divide-y">
-            {notifications.slice(0, 5).map((notif) => (
-              <li
-              key={notif._id}
-              className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
-              onClick={() => {
-                markAsReadMutation.mutate(notif._id);
-                setNotifOpen(false);
-                if (notif.link) navigate(notif.link);
-              }}
-            >
-              <p className="text-sm text-gray-700">{notif.message}</p>
-              <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
-            </li>
-            
-            ))}
-          </ul>
-        )}
-        <Link
-          to="/dashboard/notifications"
-          className="block text-center text-sm text-primary hover:underline p-2"
-        >
-          Voir toutes les notifications
-        </Link>
-      </div>
-    )}
-  </div>
+          {notifOpen && (
+            <div className="absolute top-9 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
+              {notifications.length === 0 ? (
+                <p className="p-4 text-gray-500 text-sm text-center">Aucune notification</p>
+              ) : (
+                <ul className="divide-y">
+                  {notifications.slice(0, 5).map((notif) => (
+                    <li
+                    key={notif._id}
+                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                    onClick={() => {
+                      markAsReadMutation.mutate(notif._id);
+                      setNotifOpen(false);
+                      if (notif.link) navigate(notif.link);
+                    }}
+                  >
+                    <p className="text-sm text-gray-700">{notif.message}</p>
+                    <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
+                  </li>
+                  
+                  ))}
+                </ul>
+              )}
+              <Link
+                to="/dashboard/notifications"
+                className="block text-center text-sm text-primary hover:underline p-2"
+              >
+                Voir toutes les notifications
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Avatar dropdown */}
         <div className="relative">
