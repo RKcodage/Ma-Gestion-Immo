@@ -79,12 +79,27 @@ export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick, onDocum
 
           <div className="flex items-center gap-1">
             <FileText className="w-4 h-4 text-primary" />
-            <button className="text-primary" onClick={() => onDocumentClick?.(unit._id)}>
-              {unit.documentCount || 0} doc{unit.documentCount > 1 ? "s" : ""}
-            </button>
+            {unit.documentCount > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="text-primary"
+                    onClick={() => onDocumentClick?.(unit._id)}
+                  >
+                    {unit.documentCount} document{unit.documentCount > 1 ? "s" : ""}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Voir les documents de cette unité</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>Aucun document</span>
+            )}
           </div>
         </div>
       </TooltipProvider>
     </div>
   );
 }
+
