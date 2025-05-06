@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
-import { fetchLeasesByOwner } from "../api/lease";
-import { fetchOwnerByUserId } from "../api/owner";
+import { fetchLeasesByRole } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
 
@@ -18,23 +17,13 @@ export default function Leases() {
   const [leaseToEdit, setLeaseToEdit] = useState(null);
 
   const {
-    data: owner,
-    isLoading: ownerLoading,
-    isError: ownerError,
-  } = useQuery({
-    queryKey: ["owner", user._id],
-    queryFn: () => fetchOwnerByUserId(user._id, token),
-    enabled: !!user?._id && !!token,
-  });
-
-  const {
     data: leases = [],
     isLoading: leasesLoading,
     isError: leasesError,
   } = useQuery({
-    queryKey: ["leases", owner?._id],
-    queryFn: () => fetchLeasesByOwner(owner._id, token),
-    enabled: !!owner?._id && !!token,
+    queryKey: ["leases", user._id],
+    queryFn: () => fetchLeasesByRole(token),
+    enabled: !!user?._id && !!token,
   });
 
   const unitIdFilter = searchParams.get("unitId");
@@ -42,15 +31,17 @@ export default function Leases() {
 
   const properties = Array.from(
     new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
-  ).map((id) =>
-    leases.find((lease) => lease.unitId?.propertyId?._id === id)?.unitId?.propertyId
-  ).filter(Boolean);
+  )
+    .map((id) =>
+      leases.find((lease) => lease.unitId?.propertyId?._id === id)?.unitId?.propertyId
+    )
+    .filter(Boolean);
 
   const units = Array.from(
     new Set(leases.map((lease) => lease.unitId?._id))
-  ).map((id) =>
-    leases.find((lease) => lease.unitId?._id === id)?.unitId
-  ).filter(Boolean);
+  )
+    .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+    .filter(Boolean);
 
   const filteredLeases = leases.filter((lease) => {
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;

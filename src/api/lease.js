@@ -32,6 +32,21 @@ export const fetchLeasesByOwner = async (ownerId, token) => {
   return res.json();
 };
 
+// Fetch leases by role
+export const fetchLeasesByRole = async (token) => {
+  const res = await fetch("http://localhost:4000/leases", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Erreur lors du chargement des baux.");
+  }
+
+  return res.json();
+};
+
 // Update a lease
 export const updateLease = async (leaseId, data, token) => {
   const response = await fetch(`http://localhost:4000/lease/${leaseId}`, {
