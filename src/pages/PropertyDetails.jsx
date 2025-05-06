@@ -168,6 +168,9 @@ export default function PropertyDetails() {
                 onLeaseClick={(unitId) => {
                   navigate(`/dashboard/leases?unitId=${unitId}`);
                 }}
+                onDocumentClick={(unitId) => {
+                  navigate(`/dashboard/documents?unitId=${unitId}`);
+                }}
               />
             ))}
           </div>
