@@ -91,7 +91,7 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded"
           >
-            <option value="">-- Bail concerné (optionnel) --</option>
+            <option value="">-- Bail concerné --</option>
             {leases.map((l) => (
               <option key={l._id} value={l._id}>
                 {l.unitId?.label} - {l.unitId?.propertyId?.address}
@@ -105,10 +105,10 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded"
           >
-            <option value="">-- Unité concernée (optionnel) --</option>
+            <option value="">-- Unité concernée --</option>
             {units.map((u) => (
               <option key={u._id} value={u._id}>
-                {u.label} - {u.propertyId?.address}
+                {u.label} 
               </option>
             ))}
           </select>
