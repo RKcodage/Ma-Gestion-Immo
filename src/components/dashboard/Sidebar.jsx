@@ -27,7 +27,7 @@ const Sidebar = () => {
         ) : (
           <>
             <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
-            <Link to="/dashboard/baux" className={commonClasses("/dashboard/baux")}>Baux</Link>
+            <Link to="/dashboard/leases" className={commonClasses("/dashboard/leases")}>Baux</Link>
             <Link to="/dashboard/documents" className={commonClasses("/dashboard/documents")}>Documents</Link>
           </>
         )}
