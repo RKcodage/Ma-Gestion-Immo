@@ -23,6 +23,7 @@ import ScrollToTop from './utils/ScrollToTop';
 
 // Protected routes
 import RoleRoute from './routes/RoleRoute';
+import OwnerRoute from './routes/OwnerRoute';
 
 function App() {
   return (
@@ -43,7 +44,11 @@ function App() {
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardHome />} />
           <Route path="account" element={<UserAccount />} />
-          <Route path="properties" element={<Properties />}/>
+          <Route path="properties" element={
+            <OwnerRoute>
+              <Properties />
+            </OwnerRoute>}
+          />
           <Route path="property/:propertyId" element={<PropertyDetails />}/>
           <Route path="leases" element={<Leases />}/>
           <Route path="documents" element={<Documents />}/>
