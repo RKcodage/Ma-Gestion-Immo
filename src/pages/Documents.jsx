@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
-import { fetchOwnerByUserId } from "../api/owner";
-import { fetchLeasesByOwner } from "../api/lease";
+import { fetchLeasesByRole } from "../api/lease";
 import {
   fetchLeaseDocuments,
   downloadLeaseDocument,
@@ -33,16 +32,10 @@ export default function Documents() {
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
 
-  const { data: owner } = useQuery({
-    queryKey: ["owner", user._id],
-    queryFn: () => fetchOwnerByUserId(user._id, token),
-    enabled: !!user._id && user.role === "Propriétaire",
-  });
-
   const { data: leases = [] } = useQuery({
-    queryKey: ["leases", owner?._id],
-    queryFn: () => fetchLeasesByOwner(owner._id, token),
-    enabled: user.role === "Propriétaire" && !!owner?._id,
+    queryKey: ["leases", user._id],
+    queryFn: () => fetchLeasesByRole(token),
+    enabled: !!token && !!user?._id,
   });
 
   const { data: documents = [], isLoading } = useQuery({
@@ -79,17 +72,17 @@ export default function Documents() {
     )
     .filter(Boolean);
 
-    // Filter units
-    const allUnits = Array.from(
-      new Set(leases.map((lease) => lease.unitId?._id))
-    )
-      .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
-      .filter(Boolean);
-    
-    const units = propertyIdFilter
-      ? allUnits.filter((unit) => unit?.propertyId?._id === propertyIdFilter)
-      : allUnits;
-    
+  // Filter units
+  const allUnits = Array.from(
+    new Set(leases.map((lease) => lease.unitId?._id))
+  )
+    .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+    .filter(Boolean);
+
+  const units = propertyIdFilter
+    ? allUnits.filter((unit) => unit?.propertyId?._id === propertyIdFilter)
+    : allUnits;
+
   const handleResetFilters = () => {
     navigate("/dashboard/documents");
   };
