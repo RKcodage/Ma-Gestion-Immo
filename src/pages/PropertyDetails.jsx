@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
 // Api
 import { getPropertyById } from "../api/property";
 import {
@@ -8,31 +9,43 @@ import {
   updateUnit,
   deleteUnit,
 } from "../api/unit";
+import { fetchOwnerByUserId } from "@/api/owner"
+
 // Stores
 import useAuthStore from "../stores/authStore";
+
 // Components
 import UnitCard from "../components/properties/units/UnitCard";
+
 // Modals
 import AddUnitModal from "../components/modals/AddUnitModal";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import EditUnitModal from "../components/modals/EditUnitModal";
+import CreateLeaseModal from "../components/modals/CreateLeaseModal"; // ✅
 
 export default function PropertyDetails() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { propertyId } = useParams();
+  const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  // Modals states
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [leaseModalOpen, setLeaseModalOpen] = useState(false); // ✅
   const [unitToDelete, setUnitToDelete] = useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [unitToEdit, setUnitToEdit] = useState(null);
-  const queryClient = useQueryClient();
+  
 
+  // Property query
   const { data: property, isLoading, isError } = useQuery({
     queryKey: ["property", propertyId],
     queryFn: () => getPropertyById(propertyId, token),
     enabled: !!token,
   });
 
+  // Units query
   const {
     data: units = [],
     isLoading: unitsLoading,
@@ -41,6 +54,15 @@ export default function PropertyDetails() {
     queryKey: ["units", propertyId],
     queryFn: () => getUnitsWithLeaseCount(propertyId, token),
     enabled: !!token,
+  });
+
+  // Owner query
+  const {
+    data: owner,
+  } = useQuery({
+    queryKey: ["owner", user._id],
+    queryFn: () => fetchOwnerByUserId(user._id, token),
+    enabled: !!user?._id && !!token,
   });
 
   const deleteMutation = useMutation({
@@ -55,7 +77,8 @@ export default function PropertyDetails() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ unitId, updatedData }) => updateUnit({ unitId, values: updatedData, token }),
+    mutationFn: ({ unitId, updatedData }) =>
+      updateUnit({ unitId, values: updatedData, token }),
     onSuccess: () => {
       queryClient.invalidateQueries(["units", propertyId]);
       setEditModalOpen(false);
@@ -109,7 +132,10 @@ export default function PropertyDetails() {
           >
             + Ajouter une unité
           </button>
-          <button className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600">
+          <button
+            onClick={() => setLeaseModalOpen(true)}
+            className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
+          >
             + Créer un bail
           </button>
         </div>
@@ -139,6 +165,9 @@ export default function PropertyDetails() {
                   setUnitToEdit(unit);
                   setEditModalOpen(true);
                 }}
+                onLeaseClick={(unitId) => {
+                  navigate(`/dashboard/leases?unitId=${unitId}`);
+                }}
               />
             ))}
           </div>
@@ -167,6 +196,18 @@ export default function PropertyDetails() {
           onSubmit={(updatedData) =>
             updateMutation.mutate({ unitId: unitToEdit._id, updatedData })
           }
+        />
+      )}
+
+      {/* Create lease modal */}
+      {leaseModalOpen && (
+        <CreateLeaseModal
+          open={leaseModalOpen}
+          onClose={() => setLeaseModalOpen(false)}
+          propertyId={propertyId}
+          ownerId={owner}
+          units={units}
+          token={token}
         />
       )}
 
