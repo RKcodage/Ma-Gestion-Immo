@@ -33,6 +33,7 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
     onSuccess: () => {
       toast.success("Document ajouté !");
       queryClient.invalidateQueries(["documents"]);
+      queryClient.invalidateQueries(["notifications"]);
       onClose();
     },
     onError: () => {
