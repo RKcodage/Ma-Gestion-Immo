@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useAuthStore from "../../stores/authStore";
 import useSidebarStore from "../../stores/sidebarStore";
 import { fetchNotifications, markNotificationAsRead } from "../../api/notification";
+import { fetchChatUnreadCount } from "../../api/chat"; 
 import useClickOutside from "../../hooks/useClickOutside";
-// Icons
 import NotificationIcon from "../icons/NotificationIcon";
 import HomeIcon from "../icons/HomeIcon";
 import ChatIcon from "../icons/ChatIcon";
@@ -24,9 +24,17 @@ const Header = () => {
   const notifRef = useRef();
   useClickOutside(notifRef, () => setNotifOpen(false));
 
+  // Notifications query
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => fetchNotifications(token),
+    enabled: !!token,
+  });
+
+  // Unread messages query
+  const { data: unreadChatCount = 0 } = useQuery({
+    queryKey: ["chat-unread-count"],
+    queryFn: () => fetchChatUnreadCount(token),
     enabled: !!token,
   });
 
@@ -54,16 +62,29 @@ const Header = () => {
         <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
       </div>
 
-      <div className="flex items-center gap-1 relative">
-        <ChatIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
-        {/* Bell icon with badge */}
-        <div className="relative flex items-center justify-center h-10 w-10" ref={notifRef}>
+      <div className="flex items-center gap-4 relative">
+        {/* Chat icon with unread badge */}
+        <div className="relative">
+          <button
+            onClick={() => navigate("/dashboard/chat")}
+            className="relative flex items-center justify-center"
+          >
+            <ChatIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
+            {unreadChatCount > 0 && (
+              <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                {unreadChatCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Notifications icon with badge */}
+        <div className="relative flex items-center justify-center" ref={notifRef}>
           <button
             className="relative"
             onClick={() => setNotifOpen((prev) => !prev)}
           >
             <NotificationIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
-
             {unreadCount > 0 && (
               <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 {unreadCount}
@@ -72,34 +93,27 @@ const Header = () => {
           </button>
 
           {notifOpen && (
-            <div className="absolute top-9 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
+            <div className="absolute top-7 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
               {notifications.length === 0 ? (
                 <p className="p-4 text-gray-500 text-sm text-center">Aucune notification</p>
               ) : (
                 <ul className="divide-y">
                   {notifications.slice(0, 5).map((notif) => (
                     <li
-                    key={notif._id}
-                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      markAsReadMutation.mutate(notif._id);
-                      setNotifOpen(false);
-                      if (notif.link) navigate(notif.link);
-                    }}
-                  >
-                    <p className="text-sm text-gray-700">{notif.message}</p>
-                    <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
-                  </li>
-                  
+                      key={notif._id}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        markAsReadMutation.mutate(notif._id);
+                        setNotifOpen(false);
+                        if (notif.link) navigate(notif.link);
+                      }}
+                    >
+                      <p className="text-sm text-gray-700">{notif.message}</p>
+                      <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
+                    </li>
                   ))}
                 </ul>
               )}
-              <Link
-                to="/dashboard/notifications"
-                className="block text-center text-sm text-primary hover:underline p-2"
-              >
-                Voir toutes les notifications
-              </Link>
             </div>
           )}
         </div>
