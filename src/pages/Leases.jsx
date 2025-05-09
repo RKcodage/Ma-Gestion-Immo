@@ -5,6 +5,7 @@ import useAuthStore from "../stores/authStore";
 import { fetchLeasesByRole } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
+import { MoreVertical } from "lucide-react";
 
 export default function Leases() {
   const user = useAuthStore((state) => state.user);
@@ -15,11 +16,10 @@ export default function Leases() {
   const [leaseToDelete, setLeaseToDelete] = useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [leaseToEdit, setLeaseToEdit] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const {
     data: leases = [],
-    isLoading: leasesLoading,
-    isError: leasesError,
   } = useQuery({
     queryKey: ["leases", user._id],
     queryFn: () => fetchLeasesByRole(token),
@@ -28,31 +28,23 @@ export default function Leases() {
 
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
-
-  const properties = Array.from(
-    new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
-  )
-    .map((id) =>
-      leases.find((lease) => lease.unitId?.propertyId?._id === id)?.unitId?.propertyId
-    )
-    .filter(Boolean);
-
-  const units = Array.from(
-    new Set(leases.map((lease) => lease.unitId?._id))
-  )
-    .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
-    .filter(Boolean);
-
   const leaseIdFilter = searchParams.get("leaseId");
 
-  // Filters 
+  const properties = [...new Map(
+    leases.map((lease) => [lease.unitId?.propertyId?._id, lease.unitId?.propertyId])
+  ).values()].filter(Boolean);
+
+  const units = [...new Map(
+    leases.map((lease) => [lease.unitId?._id, lease.unitId])
+  ).values()].filter(Boolean);
+
   const filteredLeases = leases.filter((lease) => {
     const matchesLease = leaseIdFilter ? lease._id === leaseIdFilter : true;
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;
     const matchesProperty = propertyIdFilter ? lease.unitId?.propertyId?._id === propertyIdFilter : true;
     return matchesLease && matchesUnit && matchesProperty;
   });
-  
+
   const handleResetFilters = () => {
     navigate("/dashboard/leases");
   };
@@ -116,44 +108,77 @@ export default function Leases() {
         )}
       </div>
 
-      {/* Liste des baux */}
+      {/* Leases list */}
       {filteredLeases.length === 0 ? (
         <p className="text-sm text-gray-500">Aucun bail trouvé.</p>
       ) : (
         <ul className="space-y-4">
           {filteredLeases.map((lease) => (
-            <li key={lease._id} className="bg-white border rounded p-4 shadow-sm space-y-1 relative">
-              <p><strong>Adresse :</strong> {lease.unitId?.propertyId?.address || "-"} ({lease.unitId?.propertyId?.city || "-"})</p>
-              <p><strong>Unité :</strong> {lease.unitId?.label || "-"}</p>
-              <p><strong>Locataire :</strong> {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}</p>
-              <p><strong>Email :</strong> {lease.tenantId?.userId?.email}</p>
-              <p><strong>Durée :</strong> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
-              <p><strong>Loyer :</strong> {lease.rentAmount} €</p>
-              <p><strong>Charges :</strong> {lease.chargesAmount} €</p>
+            <li
+              key={lease._id}
+              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition relative"
+            >
+              <div className="space-y-1 text-sm text-gray-700">
+                <p><span className="font-semibold text-gray-900">📍 Adresse :</span> {lease.unitId?.propertyId?.address || "-"} ({lease.unitId?.propertyId?.city || "-"})</p>
+                <p><span className="font-semibold text-gray-900">🏷️ Unité :</span> {lease.unitId?.label || "-"}</p>
+                <p><span className="font-semibold text-gray-900">👤 Locataire :</span> {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}</p>
+                <p><span className="font-semibold text-gray-900">📧 Email :</span> {lease.tenantId?.userId?.email}</p>
+                <p><span className="font-semibold text-gray-900">📅 Durée :</span> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
+                <p><span className="font-semibold text-gray-900">💰 Loyer :</span> {lease.rentAmount} €</p>
+                <p><span className="font-semibold text-gray-900">📆 Paiement :</span> {lease.paymentDate} du mois</p>
+                <p><span className="font-semibold text-gray-900">💸 Charges :</span> {lease.chargesAmount} €</p>
+              </div>
 
-              <div className="absolute bottom-4 right-4 flex gap-2">
+              {/* Menu */}
+              <div className="absolute top-4 right-4">
                 <button
-                  className="text-sm text-white bg-primary px-3 py-1 rounded hover:bg-primary/90"
-                  onClick={() => setLeaseToEdit(lease)}
+                  onClick={() => setOpenMenuId(openMenuId === lease._id ? null : lease._id)}
+                  className="text-gray-600 hover:text-gray-800"
                 >
-                  Modifier
+                  <MoreVertical />
                 </button>
-                <button
-                  className="text-sm text-white bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-                  onClick={() => {
-                    setLeaseToDelete(lease);
-                    setConfirmDeleteOpen(true);
-                  }}
-                >
-                  Supprimer
-                </button>
+
+                {openMenuId === lease._id && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-10">
+                    <button
+                      className="w-full text-left text-sm px-4 py-2 hover:bg-gray-100"
+                      onClick={() => {
+                        setLeaseToEdit(lease);
+                        setOpenMenuId(null);
+                      }}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      className="w-full text-left text-sm px-4 py-2 text-red-600 hover:bg-gray-100"
+                      onClick={() => {
+                        setLeaseToDelete(lease);
+                        setConfirmDeleteOpen(true);
+                        setOpenMenuId(null);
+                      }}
+                    >
+                      Supprimer
+                    </button>
+                    <button
+                      className="w-full text-left text-sm px-4 py-2 hover:bg-gray-100"
+                      onClick={() => {
+                        const leaseId = lease._id;
+                        const unitId = lease.unitId?._id;
+                        const propertyId = lease.unitId?.propertyId?._id;
+                        navigate(`/dashboard/documents?leaseId=${leaseId}&unitId=${unitId}&propertyId=${propertyId}`);
+                        setOpenMenuId(null);
+                      }}                      
+                    >
+                      Voir les documents
+                    </button>
+                  </div>
+                )}
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      {/* Delete lease modal */}
       {confirmDeleteOpen && (
         <ConfirmModal
           title="Supprimer ce bail ?"
@@ -165,7 +190,6 @@ export default function Leases() {
         />
       )}
 
-      {/* Modal d’édition */}
       {leaseToEdit && (
         <UpdateLeaseModal
           open={!!leaseToEdit}
