@@ -17,6 +17,12 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // SET USER
+  setUser: (user) => {
+    localStorage.setItem("user", JSON.stringify(user));
+    set({ user });
+  },
+
   // SIGN UP
   signup: async (formData) => {
     set({ loading: true, error: null });
@@ -41,9 +47,9 @@ const useAuthStore = create((set, get) => ({
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data));
-      set({ user: data, token: data.token, loading: false });
-      return data;
+      set({ token: data.token, loading: false });
+      get().setUser(data.user);
+      return data.user;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;
@@ -67,9 +73,9 @@ const useAuthStore = create((set, get) => ({
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data));
-      set({ user: data, token: data.token, loading: false });
-      return data;
+      set({ token: data.token, loading: false });
+      get().setUser(data.user);
+      return data.user;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;

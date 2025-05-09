@@ -1,5 +1,6 @@
 import React from "react";
-import Header from "../components/Header";
+import { Link } from "react-router-dom";
+import Header from "../components/homepage/Header";
 
 const Home = () => {
   return (
@@ -22,9 +23,17 @@ const Home = () => {
         <h2 className="text-white text-3xl md:text-5xl font-semibold mb-4">
           Gérez vos biens immobiliers sans stress
         </h2>
-        <p className="text-white text-base md:text-xl max-w-2xl">
+        <p className="text-white text-base md:text-xl max-w-2xl mb-6">
           Une solution simple et efficace pour gérer vos locations, documents et échanges avec vos locataires.
         </p>
+
+        {/* Bouton S'inscrire */}
+        <Link
+          to="/signup"
+          className="mt-6 px-8 py-4 rounded-full text-lg font-semibold tracking-wide text-white border-2 border-white bg-white/10 hover:bg-white/20 transition-all duration-300 shadow-lg hover:scale-105"
+        >
+          Essayez dès maintenant
+        </Link>
       </div>
     </div>
   );
