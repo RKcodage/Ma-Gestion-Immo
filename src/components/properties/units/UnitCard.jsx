@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FileText, Home, MoreVertical } from "lucide-react";
+import { FileText, Home, MoreVertical, Pen } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
@@ -7,7 +7,7 @@ import {
   TooltipProvider,
 } from "../../components/ui/tooltip";
 
-export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick }) {
+export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick, onDocumentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -58,24 +58,48 @@ export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick }) {
       {unit.description && <p className="text-sm text-gray-600"><strong>Description :</strong> {unit.description}</p>}
 
       <TooltipProvider>
-        <div className="flex items-center gap-1 text-sm text-gray-700 pt-2">
-          <FileText className="w-4 h-4 text-primary" />
-          {unit.leaseCount > 0 ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="text-primary" onClick={() => onLeaseClick(unit._id)}>
-                  {unit.leaseCount} bail{unit.leaseCount > 1 ? "s" : ""}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Voir les baux de cette unité</p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span>Aucun bail</span>
-          )}
+        <div className="flex items-center gap-4 text-sm text-gray-700 pt-2">
+          <div className="flex items-center gap-1">
+            <Pen className="w-4 h-4 text-primary" />
+            {unit.leaseCount > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-primary" onClick={() => onLeaseClick(unit._id)}>
+                    {unit.leaseCount} {unit.leaseCount > 1 ? "baux" : "bail"}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Voir les baux de cette unité</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>Aucun bail</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <FileText className="w-4 h-4 text-primary" />
+            {unit.documentCount > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="text-primary"
+                    onClick={() => onDocumentClick?.(unit._id)}
+                  >
+                    {unit.documentCount} document{unit.documentCount > 1 ? "s" : ""}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Voir les documents de cette unité</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>Aucun document</span>
+            )}
+          </div>
         </div>
       </TooltipProvider>
     </div>
   );
 }
+

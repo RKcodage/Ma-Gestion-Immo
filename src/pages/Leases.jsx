@@ -43,12 +43,16 @@ export default function Leases() {
     .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
     .filter(Boolean);
 
+  const leaseIdFilter = searchParams.get("leaseId");
+
+  // Filters 
   const filteredLeases = leases.filter((lease) => {
+    const matchesLease = leaseIdFilter ? lease._id === leaseIdFilter : true;
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;
     const matchesProperty = propertyIdFilter ? lease.unitId?.propertyId?._id === propertyIdFilter : true;
-    return matchesUnit && matchesProperty;
+    return matchesLease && matchesUnit && matchesProperty;
   });
-
+  
   const handleResetFilters = () => {
     navigate("/dashboard/leases");
   };
@@ -102,7 +106,7 @@ export default function Leases() {
           ))}
         </select>
 
-        {(unitIdFilter || propertyIdFilter) && (
+        {(leaseIdFilter || unitIdFilter || propertyIdFilter) && (
           <button
             onClick={handleResetFilters}
             className="bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90"
