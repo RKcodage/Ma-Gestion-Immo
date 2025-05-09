@@ -26,18 +26,34 @@ export default function Leases() {
     enabled: !!user?._id && !!token,
   });
 
+  // Search params
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
   const leaseIdFilter = searchParams.get("leaseId");
 
-  const properties = [...new Map(
-    leases.map((lease) => [lease.unitId?.propertyId?._id, lease.unitId?.propertyId])
-  ).values()].filter(Boolean);
+  // Filters
+  const properties = Array.from(
+    new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
+  )
+    .map((id) =>
+      leases.find((lease) => lease.unitId?.propertyId?._id === id)?.unitId?.propertyId
+    )
+    .filter(Boolean);
 
-  const units = [...new Map(
-    leases.map((lease) => [lease.unitId?._id, lease.unitId])
-  ).values()].filter(Boolean);
-
+    const units = Array.from(
+      new Set(
+        leases
+          .filter((lease) =>
+            propertyIdFilter
+              ? lease.unitId?.propertyId?._id === propertyIdFilter
+              : true
+          )
+          .map((lease) => lease.unitId?._id)
+      )
+    )
+      .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+      .filter(Boolean);
+    
   const filteredLeases = leases.filter((lease) => {
     const matchesLease = leaseIdFilter ? lease._id === leaseIdFilter : true;
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;
