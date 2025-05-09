@@ -42,7 +42,7 @@ const useAuthStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de l'inscription");
+        throw new Error(errorData.message || "Sign up error");
       }
 
       const data = await response.json();
@@ -68,7 +68,7 @@ const useAuthStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de la connexion");
+        throw new Error(errorData.message || "Login error");
       }
 
       const data = await response.json();
@@ -78,6 +78,53 @@ const useAuthStore = create((set, get) => ({
       return data.user;
     } catch (error) {
       set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  // FORGOT PASSWORD
+  forgotPassword: async (email) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(
+        "http://localhost:4000/user/forgot-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Error while sending");
+      }
+
+      set({ loading: false });
+      return data.message;
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  // RESET PASSWORD
+  resetPassword: async (token, newPassword) => {
+    try {
+      const res = await fetch("http://localhost:4000/user/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Reset error");
+      }
+
+      return res.json();
+    } catch (error) {
       throw error;
     }
   },

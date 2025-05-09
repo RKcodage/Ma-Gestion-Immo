@@ -14,6 +14,8 @@ import PropertyDetails from './pages/PropertyDetails';
 import Leases from './pages/Leases';
 import Documents from './pages/Documents';
 import Chat from './pages/Chat';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -34,6 +36,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
           path="/role"
           element={
