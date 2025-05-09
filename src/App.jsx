@@ -13,6 +13,7 @@ import Properties from './pages/Properties';
 import PropertyDetails from './pages/PropertyDetails';
 import Leases from './pages/Leases';
 import Documents from './pages/Documents';
+import Chat from './pages/Chat';
 
 // Dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -49,11 +50,16 @@ function App() {
               <Properties />
             </OwnerRoute>}
           />
-          <Route path="property/:propertyId" element={<PropertyDetails />}/>
+          <Route path="property/:propertyId" element={
+            <OwnerRoute>
+              <PropertyDetails />
+            </OwnerRoute>
+          }
+          />
           <Route path="leases" element={<Leases />}/>
           <Route path="documents" element={<Documents />}/>
+          <Route path="chat" element={<Chat/>}/>
         </Route>
-
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
     </Router>
