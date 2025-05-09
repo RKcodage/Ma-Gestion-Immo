@@ -41,7 +41,7 @@ export const fetchLeasesByRole = async (token) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement des baux.");
+    throw new Error("Erreur while fetching leases.");
   }
 
   return res.json();
@@ -79,4 +79,19 @@ export const deleteLease = async (leaseId, token) => {
   }
 
   return response.json();
+};
+
+// Fetch upcoming payments by lease
+export const fetchUpcomingPayments = async (token) => {
+  const res = await fetch("http://localhost:4000/leases/upcoming-payments", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error while fetching upcoming payments");
+  }
+
+  return res.json();
 };
