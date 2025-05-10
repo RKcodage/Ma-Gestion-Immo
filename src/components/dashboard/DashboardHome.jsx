@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchUpcomingPayments } from "../../api/lease";
 import { Plus } from "lucide-react";
 import { documentTemplates } from "../../constants/documentTemplates"; 
+import { Link } from "react-router-dom";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
@@ -25,7 +26,7 @@ const DashboardHome = () => {
 
       {user.role === "Propriétaire" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Cartes classiques */}
+          {/* Add property */}
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter une propriété
@@ -33,6 +34,7 @@ const DashboardHome = () => {
             <p className="text-sm text-gray-600">Créez un nouveau bien immobilier.</p>
           </div>
 
+          {/* Add Lease */}
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter un bail
@@ -40,6 +42,7 @@ const DashboardHome = () => {
             <p className="text-sm text-gray-600">Ajoutez un nouveau bail locatif.</p>
           </div>
 
+          {/* Add document */}
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter un document
@@ -47,21 +50,30 @@ const DashboardHome = () => {
             <p className="text-sm text-gray-600">Ajoutez un document lié à un bien.</p>
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Mes propriétés</h3>
-            <p className="text-sm text-gray-600">Gérez vos biens immobiliers.</p>
-          </div>
+          {/* My properties */}
+          <Link to="/dashboard/properties">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Mes propriétés</h3>
+              <p className="text-sm text-gray-600">Gérez vos biens immobiliers.</p>
+            </div>
+          </Link>
 
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
-            <p className="text-sm text-gray-600">Suivez vos contrats et leur situation.</p>
+          {/* My leases */}
+          <Link to="/dashboard/leases">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
+              <p className="text-sm text-gray-600">Suivez vos contrats et leur situation.</p>
           </div>
-
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
-            <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
-          </div>
-
+          </Link>
+          
+          {/* Documents */}
+          <Link to="/dashboard/documents">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
+              <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
+            </div>
+          </Link>
+          
           {/* Date payments calendar */}
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
             <h3 className="text-lg font-semibold mb-2">📅 Calendrier des loyers</h3>
@@ -119,15 +131,29 @@ const DashboardHome = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
-            <p className="text-sm text-gray-600">Consultez vos baux en cours.</p>
-          </div>
+          {/* Leases */}
+          <Link to="/dashboard/leases">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
+              <p className="text-sm text-gray-600">Consultez vos baux en cours.</p>
+            </div>
+          </Link>
+          
+          {/* Chat */}
+          <Link to="/dashboard/chat">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Contacter votre propriétaire</h3>
+              <p className="text-sm text-gray-600">Posez vos questions directement.</p>
+            </div>
+          </Link>
 
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Contact propriétaire</h3>
-            <p className="text-sm text-gray-600">Posez vos questions directement.</p>
-          </div>
+          {/* Documents */}
+          <Link to="/dashboard/documents">
+            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+              <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
+              <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
+            </div>
+          </Link>
         </div>
       )}
     </div>
