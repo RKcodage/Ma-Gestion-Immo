@@ -1,6 +1,6 @@
 import useAuthStore from "../../stores/authStore";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUpcomingPayments } from "../../api/lease";
+import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
 import { Plus } from "lucide-react";
 import { documentTemplates } from "../../constants/documentTemplates"; 
 import { Link } from "react-router-dom";
@@ -13,6 +13,12 @@ const DashboardHome = () => {
   const { data: upcomingPayments = [] } = useQuery({
     queryKey: ["upcoming-payments"],
     queryFn: () => fetchUpcomingPayments(token),
+    enabled: user?.role === "Propriétaire" && !!token,
+  });
+
+  const { data: rentHistory = [] } = useQuery({
+    queryKey: ["payments-historic"],
+    queryFn: () => fetchPaymentsHistoric(token),
     enabled: user?.role === "Propriétaire" && !!token,
   });
 
@@ -106,8 +112,38 @@ const DashboardHome = () => {
           
           {/* Leases payments historical */}
           <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
-            <h3 className="text-lg font-semibold mb-2">Historique des loyers</h3>
-            <p className="text-sm text-gray-600">Suivez les loyers perçus mois par mois.</p>
+            <h3 className="text-lg font-semibold mb-2">📊 Historique des loyers</h3>
+            {rentHistory.length === 0 ? (
+              <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {rentHistory.map((lease) => (
+                  <li
+                    key={lease._id}
+                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition"
+                  >
+                    <div className="text-primary font-medium text-sm">
+                      {lease.propertyAddress}
+                    </div>
+                    <div className="text-gray-700 text-sm italic">
+                      {lease.unitLabel}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      💶 Dernière échéance :{" "}
+                      <span className="font-semibold text-gray-800">
+                      {lease.lastPaymentDate
+                        ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })
+                        : "Date inconnue"}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Documents templates */}

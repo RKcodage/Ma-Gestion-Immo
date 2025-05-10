@@ -95,3 +95,18 @@ export const fetchUpcomingPayments = async (token) => {
 
   return res.json();
 };
+
+// Fetch payments historic by lease
+export const fetchPaymentsHistoric = async (token) => {
+  const response = await fetch("http://localhost:4000/leases/historic", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error while fetching payments historic");
+  }
+
+  return response.json();
+};
