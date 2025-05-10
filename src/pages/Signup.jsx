@@ -143,6 +143,13 @@ const Signup = () => {
             </button>
           </div>
 
+          {/* Link to login */}
+          <p className="text-center text-sm text-primary">
+            <Link to="/login" className="text-primary hover:underline">
+            Déjà un compte ?{" "} Se connecter
+            </Link>
+          </p>
+
           {error && (
             <p className="text-red-600 text-sm text-center">
               {error}

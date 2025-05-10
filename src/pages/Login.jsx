@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import "react-toastify/dist/ReactToastify.css";
 import useAuthStore from "../stores/authStore";
 import { ArrowLeft } from "lucide-react";
 
@@ -24,7 +24,6 @@ const Login = () => {
       const userData = await login(form.email, form.password);
       toast.success("Connexion réussie !", { autoClose: 1000 });
 
-      // Redirected if user has a role 
       if (userData.role) {
         navigate("/dashboard");
       } else {
@@ -49,7 +48,6 @@ const Login = () => {
 
       {/* Login form */}
       <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
-        {/* Bouton retour */}
         <Link
           to="/"
           className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
@@ -59,7 +57,9 @@ const Login = () => {
         </Link>
 
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800 text-center">Se connecter</h2>
+          <h2 className="text-2xl font-bold text-gray-800 text-center">
+            Se connecter
+          </h2>
 
           <input
             type="email"
@@ -81,6 +81,8 @@ const Login = () => {
             className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
+          
+
           <div className="flex justify-center">
             <button
               type="submit"
@@ -92,10 +94,17 @@ const Login = () => {
           </div>
 
           {error && (
-            <p className="text-red-600 text-sm text-center">
-              {error}
-            </p>
+            <p className="text-red-600 text-sm text-center">{error}</p>
           )}
+
+          <div className="text-center">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-primary hover:underline"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
         </form>
       </div>
     </div>
