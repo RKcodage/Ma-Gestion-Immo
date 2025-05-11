@@ -93,7 +93,7 @@ const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await fetch(
-        "http://localhost:4000/user/forgot-password",
+        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/forgot-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -118,11 +118,14 @@ const useAuthStore = create((set, get) => ({
   // RESET PASSWORD
   resetPassword: async (token, newPassword) => {
     try {
-      const res = await fetch("http://localhost:4000/user/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, newPassword }),
-      });
+      const res = await fetch(
+        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/reset-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, newPassword }),
+        },
+      );
 
       if (!res.ok) {
         const data = await res.json();

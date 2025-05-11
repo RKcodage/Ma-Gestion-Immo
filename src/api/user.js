@@ -1,13 +1,16 @@
 // Get user by id
 export const fetchUserById = async (id, token) => {
-  const res = await fetch(`http://localhost:4000/user/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/${id}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement de l'utilisateur");
+    throw new Error("Error while fetching user");
   }
 
   return res.json();
@@ -18,16 +21,19 @@ export const uploadAvatar = async ({ file, token }) => {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const res = await fetch("http://localhost:4000/user/avatar", {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/avatar",
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
     },
-    body: formData,
-  });
+  );
 
   if (!res.ok) {
-    throw new Error("Échec de l'envoi de l'avatar");
+    throw new Error("Avatar sending error");
   }
 
   return res.json();
@@ -35,16 +41,18 @@ export const uploadAvatar = async ({ file, token }) => {
 
 // Update user infos
 export const updateUser = async ({ id, values, token }) => {
-  const res = await fetch(`http://localhost:4000/user/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/${id}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(values),
     },
-    body: JSON.stringify(values),
-  });
+  );
 
-  if (!res.ok)
-    throw new Error("Erreur lors de la mise à jour de l'utilisateur");
+  if (!res.ok) throw new Error("Error while updating user");
   return res.json();
 };

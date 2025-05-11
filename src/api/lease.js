@@ -1,13 +1,16 @@
 // Create lease
 export const createLease = async (leaseData, token) => {
-  const res = await fetch("http://localhost:4000/lease", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(leaseData),
     },
-    body: JSON.stringify(leaseData),
-  });
+  );
 
   if (!res.ok) {
     const errorData = await res.json();
@@ -19,11 +22,14 @@ export const createLease = async (leaseData, token) => {
 
 // Get leases from an owner
 export const fetchLeasesByOwner = async (ownerId, token) => {
-  const res = await fetch(`http://localhost:4000/lease/${ownerId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease/${ownerId}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!res.ok) {
     throw new Error("Error to loading leases");
@@ -34,11 +40,14 @@ export const fetchLeasesByOwner = async (ownerId, token) => {
 
 // Fetch leases by role
 export const fetchLeasesByRole = async (token) => {
-  const res = await fetch("http://localhost:4000/leases", {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!res.ok) {
     throw new Error("Erreur while fetching leases.");
@@ -49,14 +58,17 @@ export const fetchLeasesByRole = async (token) => {
 
 // Update a lease
 export const updateLease = async (leaseId, data, token) => {
-  const response = await fetch(`http://localhost:4000/lease/${leaseId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease/${leaseId}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
     },
-    body: JSON.stringify(data),
-  });
+  );
 
   if (!response.ok) {
     throw new Error("Update error");
@@ -83,11 +95,14 @@ export const deleteLease = async (leaseId, token) => {
 
 // Fetch upcoming payments by lease
 export const fetchUpcomingPayments = async (token) => {
-  const res = await fetch("http://localhost:4000/leases/upcoming-payments", {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const res = await fetch(
+    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases/upcoming-payments",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!res.ok) {
     throw new Error("Error while fetching upcoming payments");
@@ -98,11 +113,14 @@ export const fetchUpcomingPayments = async (token) => {
 
 // Fetch payments historic by lease
 export const fetchPaymentsHistoric = async (token) => {
-  const response = await fetch("http://localhost:4000/leases/historic", {
-    headers: {
-      Authorization: `Bearer ${token}`,
+  const response = await fetch(
+    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases/historic",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
-  });
+  );
 
   if (!response.ok) {
     throw new Error("Error while fetching payments historic");
