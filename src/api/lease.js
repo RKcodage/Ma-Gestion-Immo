@@ -1,16 +1,15 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Create lease
 export const createLease = async (leaseData, token) => {
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(leaseData),
+  const res = await fetch(`${API_URL}/lease`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: JSON.stringify(leaseData),
+  });
 
   if (!res.ok) {
     const errorData = await res.json();
@@ -22,14 +21,11 @@ export const createLease = async (leaseData, token) => {
 
 // Get leases from an owner
 export const fetchLeasesByOwner = async (ownerId, token) => {
-  const res = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease/${ownerId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/lease/${ownerId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Error to loading leases");
@@ -40,14 +36,11 @@ export const fetchLeasesByOwner = async (ownerId, token) => {
 
 // Fetch leases by role
 export const fetchLeasesByRole = async (token) => {
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/leases`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Erreur while fetching leases.");
@@ -58,17 +51,14 @@ export const fetchLeasesByRole = async (token) => {
 
 // Update a lease
 export const updateLease = async (leaseId, data, token) => {
-  const response = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/lease/${leaseId}`,
-    {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
+  const response = await fetch(`${API_URL}/lease/${leaseId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: JSON.stringify(data),
+  });
 
   if (!response.ok) {
     throw new Error("Update error");
@@ -79,7 +69,7 @@ export const updateLease = async (leaseId, data, token) => {
 
 // Delete a lease
 export const deleteLease = async (leaseId, token) => {
-  const response = await fetch(`/lease/${leaseId}`, {
+  const response = await fetch(`${API_URL}/lease/${leaseId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -95,14 +85,11 @@ export const deleteLease = async (leaseId, token) => {
 
 // Fetch upcoming payments by lease
 export const fetchUpcomingPayments = async (token) => {
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases/upcoming-payments",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/leases/upcoming-payments`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Error while fetching upcoming payments");
@@ -113,14 +100,11 @@ export const fetchUpcomingPayments = async (token) => {
 
 // Fetch payments historic by lease
 export const fetchPaymentsHistoric = async (token) => {
-  const response = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/leases/historic",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const response = await fetch(`${API_URL}/leases/historic`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!response.ok) {
     throw new Error("Error while fetching payments historic");

@@ -1,16 +1,15 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Create notification
 export const createNotification = async (data, token) => {
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/notifications",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+  const res = await fetch(`${API_URL}/notifications`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
     },
-  );
+    body: JSON.stringify(data),
+  });
 
   if (!res.ok) throw new Error("Error while creating notification");
 
@@ -19,14 +18,11 @@ export const createNotification = async (data, token) => {
 
 // Fetch notifications for a user
 export const fetchNotifications = async (token) => {
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/notifications",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/notifications`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Erreur while fetching notifications");
@@ -37,15 +33,12 @@ export const fetchNotifications = async (token) => {
 
 // Mark as notification as read
 export const markNotificationAsRead = async (id, token) => {
-  const res = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/notifications/${id}/read`,
-    {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Error while updating notifications");

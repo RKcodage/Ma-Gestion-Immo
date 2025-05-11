@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Fetch documents from a lease
 export const fetchLeaseDocuments = async (token, filters = {}) => {
   const params = new URLSearchParams();
@@ -5,14 +7,11 @@ export const fetchLeaseDocuments = async (token, filters = {}) => {
   if (filters.unitId) params.append("unitId", filters.unitId);
   if (filters.propertyId) params.append("propertyId", filters.propertyId);
 
-  const res = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/documents?${params.toString()}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/documents?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     throw new Error("Error while fetching documents");
@@ -31,16 +30,13 @@ export const uploadLeaseDocument = async (form, token) => {
   formData.append("file", form.file);
   formData.append("isPrivate", form.isPrivate);
 
-  const res = await fetch(
-    "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/document",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
+  const res = await fetch(`${API_URL}/document`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+    body: formData,
+  });
 
   if (!res.ok) {
     throw new Error("Error while sending document");
@@ -51,14 +47,11 @@ export const uploadLeaseDocument = async (form, token) => {
 
 // Download documents
 export const downloadLeaseDocument = async (doc, token) => {
-  const res = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/documents/${doc._id}/download`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/documents/${doc._id}/download`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) throw new Error("Downloading error");
 
@@ -76,15 +69,12 @@ export const downloadLeaseDocument = async (doc, token) => {
 
 // Delete document
 export const deleteLeaseDocument = async (docId, token) => {
-  const res = await fetch(
-    `https://site--ma-gestion-immo--574qbjcqcwyr.code.run/document/${docId}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/document/${docId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
     const errorDetails = await res.json().catch(() => ({}));

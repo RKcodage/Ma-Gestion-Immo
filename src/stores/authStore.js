@@ -88,14 +88,11 @@ const useAuthStore = create((set, get) => ({
   forgotPassword: async (email) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(
-        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/forgot-password",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
-        },
-      );
+      const response = await fetch(`${API_URL}/user/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
 
       const data = await response.json();
 
@@ -114,14 +111,11 @@ const useAuthStore = create((set, get) => ({
   // RESET PASSWORD
   resetPassword: async (token, newPassword) => {
     try {
-      const res = await fetch(
-        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/reset-password",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, newPassword }),
-        },
-      );
+      const res = await fetch(`${API_URL}/user/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword }),
+      });
 
       if (!res.ok) {
         const data = await res.json();
