@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const storedUser = localStorage.getItem("user");
 const parsedUser =
   storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
@@ -27,21 +29,18 @@ const useAuthStore = create((set, get) => ({
   signup: async (formData) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(
-        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/signup",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password,
-            firstName: formData.profile.firstName,
-            lastName: formData.profile.lastName,
-            username: formData.profile.username,
-            phone: formData.profile.phone,
-          }),
-        },
-      );
+      const response = await fetch(`${API_URL}/user/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.profile.firstName,
+          lastName: formData.profile.lastName,
+          username: formData.profile.username,
+          phone: formData.profile.phone,
+        }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -63,14 +62,11 @@ const useAuthStore = create((set, get) => ({
   login: async (email, password) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch(
-        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
+      const response = await fetch(`${API_URL}/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
