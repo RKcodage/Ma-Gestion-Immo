@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,9 @@ import useClickOutside from "../../hooks/useClickOutside";
 import NotificationIcon from "../icons/NotificationIcon";
 import HomeIcon from "../icons/HomeIcon";
 import ChatIcon from "../icons/ChatIcon";
+import { io } from "socket.io-client";
+
+const socket = io(import.meta.env.VITE_API_URL);
 
 const Header = () => {
   const user = useAuthStore((state) => state.user);
@@ -38,6 +41,21 @@ const Header = () => {
     enabled: !!token,
   });
 
+  // Real time update by socket (for unread messages badge)
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const handleNewMessage = (message) => {
+      if (message.recipientId === user._id) {
+        queryClient.invalidateQueries(["chat-unread-count"]);
+      }
+    };
+
+    socket.on("new-message", handleNewMessage);
+    return () => socket.off("new-message", handleNewMessage);
+  }, [token, user, queryClient]);
+
+  // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id) => markNotificationAsRead(id, token),
     onSuccess: () => {
@@ -45,6 +63,7 @@ const Header = () => {
     },
   });
 
+  // Unread messages count
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   if (!user) return null;
