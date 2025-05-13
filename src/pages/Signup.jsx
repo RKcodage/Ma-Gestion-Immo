@@ -1,11 +1,18 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
 import { ArrowLeft } from "lucide-react";
+import { fetchInvitationByToken } from "../api/invitation";
 
 const Signup = () => {
+  const { token: invitationToken } = useParams();
+  const navigate = useNavigate();
+  const signup = useAuthStore((state) => state.signup);
+  const loading = useAuthStore((state) => state.loading);
+  const error = useAuthStore((state) => state.error);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -17,10 +24,18 @@ const Signup = () => {
     },
   });
 
-  const navigate = useNavigate();
-  const signup = useAuthStore((state) => state.signup);
-  const loading = useAuthStore((state) => state.loading);
-  const error = useAuthStore((state) => state.error);
+  const { data: invitationData } = useQuery({
+    queryKey: ["invitation", invitationToken],
+    queryFn: () => fetchInvitationByToken(invitationToken),
+    enabled: !!invitationToken,
+  });
+
+  // Set email if invitation exists
+  useEffect(() => {
+    if (invitationData?.email) {
+      setForm((prev) => ({ ...prev, email: invitationData.email }));
+    }
+  }, [invitationData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +56,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signup(form);
+      await signup(form, invitationToken);
       toast.success("Inscription réussie !", {
         onClose: () => navigate("/"),
         autoClose: 3000,
@@ -85,6 +100,7 @@ const Signup = () => {
             onChange={handleChange}
             required
             className="w-3/4 mx-auto block px-4 py-2 border rounded"
+            disabled={!!invitationData?.email}
           />
 
           <input
@@ -142,6 +158,12 @@ const Signup = () => {
               {loading ? "Inscription en cours..." : "S'inscrire"}
             </button>
           </div>
+
+          <p className="text-center text-sm text-primary">
+            <Link to="/login" className="text-primary hover:underline">
+              Déjà un compte ? Se connecter
+            </Link>
+          </p>
 
           {error && (
             <p className="text-red-600 text-sm text-center">

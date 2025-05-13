@@ -99,7 +99,7 @@ const Login = () => {
 
           <div className="text-center">
             <Link
-              to="/forget-password"
+              to="/forgot-password"
               className="text-sm text-primary hover:underline"
             >
               Mot de passe oublié ?

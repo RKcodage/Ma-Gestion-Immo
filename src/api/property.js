@@ -1,13 +1,15 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Get properties by owner
 export const fetchPropertiesByOwner = async (ownerId, token) => {
-  const res = await fetch(`http://localhost:4000/owner/${ownerId}/properties`, {
+  const res = await fetch(`${API_URL}/owner/${ownerId}/properties`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement des propriétés");
+    throw new Error("Error while loading properties");
   }
 
   return res.json();
@@ -15,7 +17,7 @@ export const fetchPropertiesByOwner = async (ownerId, token) => {
 
 // Create a new property
 export const createProperty = async ({ ownerId, values, token }) => {
-  const res = await fetch(`http://localhost:4000/property`, {
+  const res = await fetch(`${API_URL}/property`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -25,7 +27,7 @@ export const createProperty = async ({ ownerId, values, token }) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la création de la propriété");
+    throw new Error("Error while creating property");
   }
 
   return res.json();
@@ -33,14 +35,14 @@ export const createProperty = async ({ ownerId, values, token }) => {
 
 // Get property by Id
 export const getPropertyById = async (propertyId, token) => {
-  const res = await fetch(`http://localhost:4000/property/${propertyId}`, {
+  const res = await fetch(`${API_URL}/property/${propertyId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement de la propriété");
+    throw new Error("Error while fetching property");
   }
 
   return res.json();
@@ -48,7 +50,7 @@ export const getPropertyById = async (propertyId, token) => {
 
 // Update a property by ID
 export const updateProperty = async ({ propertyId, values, token }) => {
-  const res = await fetch(`http://localhost:4000/property/${propertyId}`, {
+  const res = await fetch(`${API_URL}/property/${propertyId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -58,7 +60,7 @@ export const updateProperty = async ({ propertyId, values, token }) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la mise à jour de la propriété");
+    throw new Error("Error while updating property");
   }
 
   return res.json();
@@ -66,7 +68,7 @@ export const updateProperty = async ({ propertyId, values, token }) => {
 
 // Delete a property by ID
 export const deleteProperty = async ({ propertyId, token }) => {
-  const res = await fetch(`http://localhost:4000/property/${propertyId}`, {
+  const res = await fetch(`${API_URL}/property/${propertyId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -74,7 +76,7 @@ export const deleteProperty = async ({ propertyId, token }) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la suppression de la propriété");
+    throw new Error("Error while deleting property");
   }
 
   return res.json();
