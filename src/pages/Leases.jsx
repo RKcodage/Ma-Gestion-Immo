@@ -26,18 +26,34 @@ export default function Leases() {
     enabled: !!user?._id && !!token,
   });
 
+  // Search params
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
   const leaseIdFilter = searchParams.get("leaseId");
 
-  const properties = [...new Map(
-    leases.map((lease) => [lease.unitId?.propertyId?._id, lease.unitId?.propertyId])
-  ).values()].filter(Boolean);
+  // Filters
+  const properties = Array.from(
+    new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
+  )
+    .map((id) =>
+      leases.find((lease) => lease.unitId?.propertyId?._id === id)?.unitId?.propertyId
+    )
+    .filter(Boolean);
 
-  const units = [...new Map(
-    leases.map((lease) => [lease.unitId?._id, lease.unitId])
-  ).values()].filter(Boolean);
-
+    const units = Array.from(
+      new Set(
+        leases
+          .filter((lease) =>
+            propertyIdFilter
+              ? lease.unitId?.propertyId?._id === propertyIdFilter
+              : true
+          )
+          .map((lease) => lease.unitId?._id)
+      )
+    )
+      .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+      .filter(Boolean);
+    
   const filteredLeases = leases.filter((lease) => {
     const matchesLease = leaseIdFilter ? lease._id === leaseIdFilter : true;
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;
@@ -121,8 +137,29 @@ export default function Leases() {
               <div className="space-y-1 text-sm text-gray-700">
                 <p><span className="font-semibold text-gray-900">📍 Adresse :</span> {lease.unitId?.propertyId?.address || "-"} ({lease.unitId?.propertyId?.city || "-"})</p>
                 <p><span className="font-semibold text-gray-900">🏷️ Unité :</span> {lease.unitId?.label || "-"}</p>
-                <p><span className="font-semibold text-gray-900">👤 Locataire :</span> {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}</p>
-                <p><span className="font-semibold text-gray-900">📧 Email :</span> {lease.tenantId?.userId?.email}</p>
+                {user.role === "Locataire" ? (
+                  <>
+                    <p>
+                      <span className="font-semibold text-gray-900">👤 Propriétaire :</span>{" "}
+                      {lease.ownerId?.userId?.profile?.firstName} {lease.ownerId?.userId?.profile?.lastName}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
+                      {lease.ownerId?.userId?.email}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
+                      {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
+                      {lease.tenantId?.userId?.email}
+                    </p>
+                  </>
+                )}
                 <p><span className="font-semibold text-gray-900">📅 Durée :</span> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
                 <p><span className="font-semibold text-gray-900">💰 Loyer :</span> {lease.rentAmount} €</p>
                 <p><span className="font-semibold text-gray-900">📆 Paiement :</span> {lease.paymentDate} du mois</p>

@@ -1,6 +1,8 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Send message
 export const sendMessage = async (token, messageData) => {
-  const res = await fetch("http://localhost:4000/messages", {
+  const res = await fetch(`${API_URL}/messages`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -18,7 +20,7 @@ export const sendMessage = async (token, messageData) => {
 
 // Fetch messages between users
 export const fetchMessages = async (userId, token) => {
-  const res = await fetch(`http://localhost:4000/messages/${userId}`, {
+  const res = await fetch(`${API_URL}/messages/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -33,7 +35,7 @@ export const fetchMessages = async (userId, token) => {
 
 // Fetch conversation from a user
 export const fetchConversations = async (token) => {
-  const res = await fetch("http://localhost:4000/messages/conversations", {
+  const res = await fetch(`${API_URL}/messages/conversations`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -48,7 +50,7 @@ export const fetchConversations = async (token) => {
 
 // Fetch available recipients (tenants if owner, owner if tenant)
 export const fetchRecipients = async (token) => {
-  const res = await fetch("http://localhost:4000/messages/recipients", {
+  const res = await fetch(`${API_URL}/messages/recipients`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -63,7 +65,7 @@ export const fetchRecipients = async (token) => {
 
 // Fetch unread messages count (for badge on Header Chat Icon)
 export const fetchChatUnreadCount = async (token) => {
-  const res = await fetch("http://localhost:4000/messages/unread-count", {
+  const res = await fetch(`${API_URL}/messages/unread-count`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -79,7 +81,7 @@ export const fetchChatUnreadCount = async (token) => {
 
 // Mark message as read
 export const markMessagesAsRead = async (userId, token) => {
-  const res = await fetch(`http://localhost:4000/messages/read/${userId}`, {
+  const res = await fetch(`${API_URL}/messages/read/${userId}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,

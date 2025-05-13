@@ -1,13 +1,15 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Get user by id
 export const fetchUserById = async (id, token) => {
-  const res = await fetch(`http://localhost:4000/user/${id}`, {
+  const res = await fetch(`${API_URL}/user/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement de l'utilisateur");
+    throw new Error("Error while fetching user");
   }
 
   return res.json();
@@ -18,7 +20,7 @@ export const uploadAvatar = async ({ file, token }) => {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const res = await fetch("http://localhost:4000/user/avatar", {
+  const res = await fetch(`${API_URL}/user/avatar`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,7 +29,7 @@ export const uploadAvatar = async ({ file, token }) => {
   });
 
   if (!res.ok) {
-    throw new Error("Échec de l'envoi de l'avatar");
+    throw new Error("Avatar sending error");
   }
 
   return res.json();
@@ -35,7 +37,7 @@ export const uploadAvatar = async ({ file, token }) => {
 
 // Update user infos
 export const updateUser = async ({ id, values, token }) => {
-  const res = await fetch(`http://localhost:4000/user/${id}`, {
+  const res = await fetch(`${API_URL}/user/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -44,7 +46,6 @@ export const updateUser = async ({ id, values, token }) => {
     body: JSON.stringify(values),
   });
 
-  if (!res.ok)
-    throw new Error("Erreur lors de la mise à jour de l'utilisateur");
+  if (!res.ok) throw new Error("Error while updating user");
   return res.json();
 };

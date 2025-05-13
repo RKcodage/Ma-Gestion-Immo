@@ -21,14 +21,17 @@ export const useAssignRole = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost:4000/user/role", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://site--ma-gestion-immo--574qbjcqcwyr.code.run/user/role",
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ role }),
         },
-        body: JSON.stringify({ role }),
-      });
+      );
 
       const data = await response.json();
       if (!response.ok)
