@@ -86,7 +86,9 @@ const useAuthStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Login error");
+        throw new Error(
+          errorData.message || "Identifiant ou mot de passe incorrect",
+        );
       }
 
       const data = await response.json();
