@@ -75,10 +75,13 @@ const Login = () => {
 
           {/* Email */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              id="email"
               value={form.email}
               onChange={handleChange}
               required
@@ -91,10 +94,13 @@ const Login = () => {
 
           {/* Password */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Mot de passe
+            </label>
             <input
               type="password"
               name="password"
-              placeholder="Mot de passe"
+              id="password"
               value={form.password}
               onChange={handleChange}
               required
