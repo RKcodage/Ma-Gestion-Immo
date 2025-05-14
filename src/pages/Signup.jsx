@@ -34,10 +34,14 @@ const Signup = () => {
   // Set email if invitation exists
   useEffect(() => {
     if (invitationData?.email) {
-      setForm((prev) => ({ ...prev, email: invitationData.email }));
+      setForm((prev) => ({
+        ...prev,
+        email: invitationData.email,
+      }));
     }
-  }, [invitationData]);
-
+  }, [invitationData?.email]);
+  
+  
   // Get field for validation errors
   const getFieldError = (field) => {
     if (Array.isArray(error)) {
@@ -102,7 +106,7 @@ const Signup = () => {
           <span>Retour</span>
         </Link>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
           <h2 className="text-2xl font-bold text-gray-800 text-center">
             Créer un compte
           </h2>
@@ -185,9 +189,9 @@ const Signup = () => {
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
-            {getFieldError("profile.username") && (
+            {/* {getFieldError("profile.username") && (
               <p className="text-red-500 text-sm mt-1">{getFieldError("profile.username")}</p>
-            )}
+            )} */}
           </div>
 
           {/* Phone */}
@@ -201,9 +205,9 @@ const Signup = () => {
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
-            {getFieldError("profile.phone") && (
+            {/* {getFieldError("profile.phone") && (
               <p className="text-red-500 text-sm mt-1">{getFieldError("profile.phone")}</p>
-            )}
+            )} */}
           </div>
 
           <div className="flex justify-center">
