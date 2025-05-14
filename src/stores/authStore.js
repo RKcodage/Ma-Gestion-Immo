@@ -51,6 +51,10 @@ const useAuthStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json();
+        // Validation errors
+        if (errorData.errors) {
+          throw { validationErrors: errorData.errors };
+        }
         throw new Error(errorData.message || "Sign up error");
       }
 
@@ -60,8 +64,13 @@ const useAuthStore = create((set, get) => ({
       get().setUser(data.user);
       return data.user;
     } catch (error) {
-      set({ error: error.message, loading: false });
-      throw error;
+      if (error.validationErrors) {
+        set({ error: error.validationErrors, loading: false });
+        throw error;
+      } else {
+        set({ error: error.message, loading: false });
+        throw error;
+      }
     }
   },
 
@@ -77,7 +86,9 @@ const useAuthStore = create((set, get) => ({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Login error");
+        throw new Error(
+          errorData.message || "Identifiant ou mot de passe incorrect",
+        );
       }
 
       const data = await response.json();
