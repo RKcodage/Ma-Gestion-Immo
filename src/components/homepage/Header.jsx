@@ -1,11 +1,15 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { User } from "lucide-react";
 
-const Header = () => {
+const Header = ({ className = "" }) => {
   return (
-    <header className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4 z-40">
-      <h1 className="text-white text-2xl font-bold">Ma Gestion Immo</h1>
+    <header className={`absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4 z-40 ${className}`}>
+      <Link to="/">
+        <h1 className="text-white text-2xl font-bold">
+          Ma Gestion Immo
+        </h1>
+      </Link>
       <div className="space-x-6 flex items-center">
         {/* <NavLink
           to="/signup"
