@@ -15,7 +15,7 @@ const LegalMentions = () => {
           <p>
             Ce site est édité par <strong>Ma Gestion Immo</strong>, projet développé par Rayan Kabra.
           </p>
-          <p className="text-sm text-gray-500 mt-1">Contact : contact@magementionimmo.fr</p>
+          <p className="text-sm text-gray-500 mt-1">Contact : contact@ma-gestion-immo.fr</p>
         </section>
 
         <section className="mb-10">
