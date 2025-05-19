@@ -4,7 +4,7 @@ import { FaRegBuilding, FaClipboardList, FaComments } from "react-icons/fa";
 const Services = () => {
   return (
     <div>
-      <section className="pt-20 pb-20 px-6 md:px-16 bg-gray-50 text-gray-800">
+      <section className="pt-20 pb-20 px-6 md:px-16 bg-gray-50 text-gray-800" id='features'>
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
             Votre assistant personnel de gestion immobilière
