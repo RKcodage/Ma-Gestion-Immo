@@ -1,6 +1,7 @@
 import React from 'react'
 import Header from '@/components/homepage/Header'
 import Footer from '../components/homepage/Footer'
+import { Link } from 'react-router-dom'
 
 const LegalMentions = () => {
   return (
@@ -54,7 +55,12 @@ const LegalMentions = () => {
             Conformément au Règlement Général sur la Protection des Données (RGPD), les données personnelles collectées
             sur ce site sont destinées exclusivement à l’usage de Ma Gestion Immo. Vous disposez d’un droit d’accès, de
             rectification et de suppression des données vous concernant. Pour toute demande, merci de nous écrire à :
-            contact@magementionimmo.fr
+            contact@ma-gestion-immo.fr
+          </p>
+          <p className='mt-2 text-primary'>
+          <Link to="/privacy-policy">
+            Voir la Politique de confidentialité. 
+          </Link>
           </p>
         </section>
 
