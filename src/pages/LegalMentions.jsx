@@ -1,6 +1,7 @@
 import React from 'react'
 import Header from '@/components/homepage/Header'
 import Footer from '../components/homepage/Footer'
+import { Link } from 'react-router-dom'
 
 const LegalMentions = () => {
   return (
@@ -15,7 +16,7 @@ const LegalMentions = () => {
           <p>
             Ce site est édité par <strong>Ma Gestion Immo</strong>, projet développé par Rayan Kabra.
           </p>
-          <p className="text-sm text-gray-500 mt-1">Contact : contact@magementionimmo.fr</p>
+          <p className="text-sm text-gray-500 mt-1">Contact : contact@ma-gestion-immo.fr</p>
         </section>
 
         <section className="mb-10">
@@ -54,7 +55,12 @@ const LegalMentions = () => {
             Conformément au Règlement Général sur la Protection des Données (RGPD), les données personnelles collectées
             sur ce site sont destinées exclusivement à l’usage de Ma Gestion Immo. Vous disposez d’un droit d’accès, de
             rectification et de suppression des données vous concernant. Pour toute demande, merci de nous écrire à :
-            contact@magementionimmo.fr
+            contact@ma-gestion-immo.fr
+          </p>
+          <p className='mt-2 text-primary'>
+          <Link to="/privacy-policy">
+            Voir la Politique de confidentialité. 
+          </Link>
           </p>
         </section>
 
