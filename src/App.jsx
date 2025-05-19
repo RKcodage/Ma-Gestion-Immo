@@ -9,6 +9,7 @@ import Signup from './pages/Signup'
 import Login from './pages/Login';
 import LegalMentions from './pages/LegalMentions';
 import Cgu from './pages/Cgu';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import ChooseRole from './pages/ChooseRole';
 import UserAccount from './pages/UserAccount';
 import Properties from './pages/Properties';
@@ -41,6 +42,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/legal-mentions" element={<LegalMentions />} />
         <Route path="/cgu" element={<Cgu/>} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
