@@ -7,6 +7,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home'
 import Signup from './pages/Signup'
 import Login from './pages/Login';
+import LegalMentions from './pages/LegalMentions';
 import ChooseRole from './pages/ChooseRole';
 import UserAccount from './pages/UserAccount';
 import Properties from './pages/Properties';
@@ -37,6 +38,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/invitation/:token" element={<Signup />} /> // Sign Up route with invitation 
         <Route path="/login" element={<Login />} />
+        <Route path="/legal-mentions" element={<LegalMentions />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route
