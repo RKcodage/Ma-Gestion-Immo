@@ -9,7 +9,7 @@ const Difficulties = () => {
             La gestion locative, un casse-tête pour beaucoup
           </h2>
           <p className="text-lg text-gray-600 mb-12">
-            Que vous soyez propriétaire ou locataire, la location immobilière s'accompagne souvent de complications : oublis de paiement, documents perdus, manque de communication, ou encore un suivi des dossiers chronophage.
+            La location immobilière s'accompagne souvent de complications : oublis de paiement, documents perdus, manque de communication, ou encore un suivi des dossiers chronophage.
           </p>
           <div className="grid md:grid-cols-2 gap-8 text-center">
             <div className="bg-gray-50 p-6 rounded-xl shadow-sm border border-gray-100">
