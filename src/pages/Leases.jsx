@@ -163,14 +163,22 @@ export default function Leases() {
                   </>
                 ) : (
                   <>
-                    <p>
-                      <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
-                      {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
-                      {lease.tenantId?.userId?.email}
-                    </p>
+                    {lease.tenants && lease.tenants.length > 0 ? (
+                      lease.tenants.map((tenant, index) => (
+                        <div key={tenant._id || index}>
+                          <p>
+                            <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
+                            {tenant.userId?.profile?.firstName} {tenant.userId?.profile?.lastName}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
+                            {tenant.userId?.email}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic">Aucun locataire rattaché</p>
+                    )}
                   </>
                 )}
                 <p><span className="font-semibold text-gray-900">📅 Durée :</span> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
