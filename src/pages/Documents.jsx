@@ -2,8 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
-import { fetchOwnerByUserId } from "../api/owner";
-import { fetchLeasesByOwner } from "../api/lease";
+import { fetchLeasesByRole } from "../api/lease";
 import {
   fetchLeaseDocuments,
   downloadLeaseDocument,
@@ -32,17 +31,12 @@ export default function Documents() {
 
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
-
-  const { data: owner } = useQuery({
-    queryKey: ["owner", user._id],
-    queryFn: () => fetchOwnerByUserId(user._id, token),
-    enabled: !!user._id && user.role === "Propriétaire",
-  });
+  const documentId = searchParams.get("documentId");
 
   const { data: leases = [] } = useQuery({
-    queryKey: ["leases", owner?._id],
-    queryFn: () => fetchLeasesByOwner(owner._id, token),
-    enabled: user.role === "Propriétaire" && !!owner?._id,
+    queryKey: ["leases", user._id],
+    queryFn: () => fetchLeasesByRole(token),
+    enabled: !!token && !!user?._id,
   });
 
   const { data: documents = [], isLoading } = useQuery({
@@ -54,6 +48,10 @@ export default function Documents() {
       }),
     enabled: !!token,
   });
+
+  const filteredDocuments = documentId
+    ? documents.filter((doc) => doc._id === documentId)
+    : documents;
 
   const deleteMutation = useMutation({
     mutationFn: (id) => deleteLeaseDocument(id, token),
@@ -70,7 +68,6 @@ export default function Documents() {
     },
   });
 
-  // Filter properties
   const properties = Array.from(
     new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
   )
@@ -79,17 +76,16 @@ export default function Documents() {
     )
     .filter(Boolean);
 
-    // Filter units
-    const allUnits = Array.from(
-      new Set(leases.map((lease) => lease.unitId?._id))
-    )
-      .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
-      .filter(Boolean);
-    
-    const units = propertyIdFilter
-      ? allUnits.filter((unit) => unit?.propertyId?._id === propertyIdFilter)
-      : allUnits;
-    
+  const allUnits = Array.from(
+    new Set(leases.map((lease) => lease.unitId?._id))
+  )
+    .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+    .filter(Boolean);
+
+  const units = propertyIdFilter
+    ? allUnits.filter((unit) => unit?.propertyId?._id === propertyIdFilter)
+    : allUnits;
+
   const handleResetFilters = () => {
     navigate("/dashboard/documents");
   };
@@ -147,7 +143,7 @@ export default function Documents() {
             ))}
           </select>
 
-          {(unitIdFilter || propertyIdFilter) && (
+          {(unitIdFilter || propertyIdFilter || documentId) && (
             <button
               onClick={handleResetFilters}
               className="bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90"
@@ -160,11 +156,11 @@ export default function Documents() {
 
       {isLoading ? (
         <p>Chargement des documents...</p>
-      ) : documents.length === 0 ? (
+      ) : filteredDocuments.length === 0 ? (
         <p className="text-sm text-gray-500">Aucun document trouvé.</p>
       ) : (
         <ul className="space-y-4">
-          {documents.map((doc) => (
+          {filteredDocuments.map((doc) => (
             <li key={doc._id} className="bg-white border rounded p-4 shadow-sm relative">
               <div className="absolute top-2 right-2">
                 <button
