@@ -17,6 +17,7 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
     unitId: "",
     file: null,
     isPrivate: false,
+    tenantId: "", 
   });
 
   const handleChange = (e) => {
@@ -37,7 +38,6 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
       onClose();
     },
     onError: () => {
-      
       toast.error("Erreur lors de l'ajout du document");
     },
   });
@@ -51,6 +51,9 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
 
     mutation.mutate();
   };
+
+  const selectedLease = leases.find((l) => l._id === form.leaseId);
+  const hasMultipleTenants = selectedLease?.tenants?.length > 1;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -100,6 +103,22 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
             ))}
           </select>
 
+          {hasMultipleTenants && (
+            <select
+              name="tenantId"
+              value={form.tenantId}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded"
+            >
+              <option value="">-- Tous les locataires du bail --</option>
+              {selectedLease.tenants.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.userId?.profile?.firstName} {t.userId?.profile?.lastName}
+                </option>
+              ))}
+            </select>
+          )}
+
           <select
             name="unitId"
             value={form.unitId}
@@ -109,7 +128,7 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
             <option value="">-- Unité concernée --</option>
             {units.map((u) => (
               <option key={u._id} value={u._id}>
-                {u.label} 
+                {u.label}
               </option>
             ))}
           </select>
