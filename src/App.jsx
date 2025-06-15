@@ -1,6 +1,12 @@
 import './App.css'
+import { useEffect } from "react";
+// Cookies
+import Cookies from "js-cookie";
+import CookieConsent from "react-cookie-consent";
+// Toast
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+// Router
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import pages
@@ -32,6 +38,16 @@ import RoleRoute from './routes/RoleRoute';
 import OwnerRoute from './routes/OwnerRoute';
 
 function App() {
+
+  useEffect(() => {
+    const consent = Cookies.get("userConsent");
+    console.log("Consentement actuel :", consent); 
+
+    if (consent === "true") {
+      console.log("L'utilisateur a accepté les cookies.");
+    }
+  }, []);
+
   return (
     <Router>
       <ScrollToTop />
@@ -73,6 +89,35 @@ function App() {
         </Route>
       </Routes>
       <ToastContainer position="top-right" autoClose={3000} />
+      <CookieConsent
+        location="bottom"
+        buttonText="J'accepte"
+        declineButtonText="Je refuse"
+        enableDeclineButton
+        cookieName="userConsent"
+        style={{ background: "hsl(var(--primary))" }}
+        buttonStyle={{
+          color: "#fff",
+          background: "#4CAF50",
+          fontSize: "15px",
+          borderRadius: "4px",
+          padding: "10px 20px",
+        }}
+        declineButtonStyle={{
+          background: "#f44336",
+          color: "#fff",
+          fontSize: "15px",
+          borderRadius: "4px",
+          padding: "10px 20px",
+          marginLeft: "10px",
+        }}
+        expires={365}
+      >
+        Ce site utilise des cookies pour améliorer votre expérience.{" "}
+        <a href="/privacy-policy" style={{ color: "#f1d600" }}>
+          En savoir plus
+        </a>
+      </CookieConsent>
     </Router>
   )
 }
