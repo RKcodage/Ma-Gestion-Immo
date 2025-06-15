@@ -99,14 +99,14 @@ function App() {
         buttonStyle={{
           color: "#fff",
           background: "#4CAF50",
-          fontSize: "15px",
+          fontSize: "14px",
           borderRadius: "4px",
           padding: "10px 20px",
         }}
         declineButtonStyle={{
           background: "#f44336",
           color: "#fff",
-          fontSize: "15px",
+          fontSize: "14px",
           borderRadius: "4px",
           padding: "10px 20px",
           marginRight: "0px",
