@@ -109,7 +109,7 @@ function App() {
           fontSize: "15px",
           borderRadius: "4px",
           padding: "10px 20px",
-          marginLeft: "10px",
+          marginRight: "0px",
         }}
         expires={365}
       >
