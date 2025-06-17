@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const storedUser = localStorage.getItem("user");
 const parsedUser =
   storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
@@ -24,25 +26,71 @@ const useAuthStore = create((set, get) => ({
   },
 
   // SIGN UP
-  signup: async (formData) => {
+  signup: async (formData, invitationToken = null) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("http://localhost:4000/user/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
+      const bodyData = {
+        email: formData.email,
+        password: formData.password,
+        profile: {
           firstName: formData.profile.firstName,
           lastName: formData.profile.lastName,
           username: formData.profile.username,
           phone: formData.profile.phone,
-        }),
+        },
+      };
+
+      // Add invitation token if exists
+      if (invitationToken) {
+        bodyData.invitationToken = invitationToken;
+      }
+
+      const response = await fetch(`${API_URL}/user/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de l'inscription");
+        // Validation errors
+        if (errorData.errors) {
+          throw { validationErrors: errorData.errors };
+        }
+        throw new Error(errorData.message || "Sign up error");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      set({ token: data.token, loading: false });
+      get().setUser(data.user);
+      return data.user;
+    } catch (error) {
+      if (error.validationErrors) {
+        set({ error: error.validationErrors, loading: false });
+        throw error;
+      } else {
+        set({ error: error.message, loading: false });
+        throw error;
+      }
+    }
+  },
+
+  // LOGIN
+  login: async (email, password) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch(`${API_URL}/user/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Identifiant ou mot de passe incorrect",
+        );
       }
 
       const data = await response.json();
@@ -56,28 +104,46 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // LOGIN
-  login: async (email, password) => {
+  // FORGOT PASSWORD
+  forgotPassword: async (email) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch("http://localhost:4000/user/login", {
+      const response = await fetch(`${API_URL}/user/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de la connexion");
+        throw new Error(data.message || "Error while sending");
       }
 
-      const data = await response.json();
-      localStorage.setItem("token", data.token);
-      set({ token: data.token, loading: false });
-      get().setUser(data.user);
-      return data.user;
+      set({ loading: false });
+      return data.message;
     } catch (error) {
       set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
+  // RESET PASSWORD
+  resetPassword: async (token, newPassword) => {
+    try {
+      const res = await fetch(`${API_URL}/user/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Reset error");
+      }
+
+      return res.json();
+    } catch (error) {
       throw error;
     }
   },
