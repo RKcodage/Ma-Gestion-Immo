@@ -1,23 +1,27 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
-import { fetchLeasesByRole } from "../api/lease";
+import { fetchLeasesByRole, deleteLease } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
 import { MoreVertical } from "lucide-react";
+import { toast } from "react-toastify";
+
 
 export default function Leases() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [leaseToDelete, setLeaseToDelete] = useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [leaseToEdit, setLeaseToEdit] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
 
+  // Leases query
   const {
     data: leases = [],
   } = useQuery({
@@ -61,14 +65,23 @@ export default function Leases() {
     return matchesLease && matchesUnit && matchesProperty;
   });
 
+  // Reset filters
   const handleResetFilters = () => {
     navigate("/dashboard/leases");
   };
 
-  const confirmDelete = () => {
+  // Confirm delete lease
+  const confirmDelete = async () => {
     if (leaseToDelete) {
-      console.log("Suppression du bail :", leaseToDelete._id);
-      setConfirmDeleteOpen(false);
+      try {
+        await deleteLease(leaseToDelete._id, token);
+        toast.success("Bail supprimé avec succès");
+        setConfirmDeleteOpen(false);
+        setLeaseToDelete(null);
+        queryClient.invalidateQueries(["leases", user._id]); // Rafraîchir la liste
+      } catch (err) {
+        toast.error("Erreur : " + err.message);
+      }
     }
   };
 
@@ -150,14 +163,22 @@ export default function Leases() {
                   </>
                 ) : (
                   <>
-                    <p>
-                      <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
-                      {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
-                      {lease.tenantId?.userId?.email}
-                    </p>
+                    {lease.tenants && lease.tenants.length > 0 ? (
+                      lease.tenants.map((tenant, index) => (
+                        <div key={tenant._id || index}>
+                          <p>
+                            <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
+                            {tenant.userId?.profile?.firstName} {tenant.userId?.profile?.lastName}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
+                            {tenant.userId?.email}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 italic">Aucun locataire rattaché</p>
+                    )}
                   </>
                 )}
                 <p><span className="font-semibold text-gray-900">📅 Durée :</span> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
