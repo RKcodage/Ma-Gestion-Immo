@@ -15,7 +15,8 @@ const useAuthStore = create(() => ({
   user: { role: "Propriétaire" }, // Role by default, put "Locataire" to test the tenant
 }));
 
-vi.mock("@/stores/authStore", () => ({
+/* vi.mock("@/stores/authStore", () => ({
   __esModule: true,
   default: useAuthStore,
 }));
+ */
