@@ -76,11 +76,13 @@ export const deleteLease = async (leaseId, token) => {
     },
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
-    throw new Error("Error during lease deleting");
+    throw new Error(data.message || "Erreur lors de la suppression du bail");
   }
 
-  return response.json();
+  return data;
 };
 
 // Fetch upcoming payments by lease

@@ -32,10 +32,12 @@ const useAuthStore = create((set, get) => ({
       const bodyData = {
         email: formData.email,
         password: formData.password,
-        firstName: formData.profile.firstName,
-        lastName: formData.profile.lastName,
-        username: formData.profile.username,
-        phone: formData.profile.phone,
+        profile: {
+          firstName: formData.profile.firstName,
+          lastName: formData.profile.lastName,
+          username: formData.profile.username,
+          phone: formData.profile.phone,
+        },
       };
 
       // Add invitation token if exists

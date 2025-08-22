@@ -34,10 +34,14 @@ const Signup = () => {
   // Set email if invitation exists
   useEffect(() => {
     if (invitationData?.email) {
-      setForm((prev) => ({ ...prev, email: invitationData.email }));
+      setForm((prev) => ({
+        ...prev,
+        email: invitationData.email,
+      }));
     }
-  }, [invitationData]);
-
+  }, [invitationData?.email]);
+  
+  
   // Get field for validation errors
   const getFieldError = (field) => {
     if (Array.isArray(error)) {
@@ -102,17 +106,18 @@ const Signup = () => {
           <span>Retour</span>
         </Link>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
           <h2 className="text-2xl font-bold text-gray-800 text-center">
             Créer un compte
           </h2>
 
           {/* Email */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              id="email"
               value={form.email}
               onChange={handleChange}
               required
@@ -126,10 +131,11 @@ const Signup = () => {
 
           {/* Password */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
             <input
               type="password"
               name="password"
-              placeholder="Mot de passe"
+              id="password"
               value={form.password}
               onChange={handleChange}
               required
@@ -142,70 +148,66 @@ const Signup = () => {
 
           {/* First name */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="profile.firstName" className="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
             <input
               type="text"
               name="profile.firstName"
-              placeholder="Prénom"
+              id="profile.firstName"
               value={form.profile.firstName}
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
             {getFieldError("profile.firstName") && (
-              <p className="text-red-500 text-sm mt-1">
-                {getFieldError("profile.firstName")}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.firstName")}</p>
             )}
           </div>
 
           {/* Last name */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="profile.lastName" className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
             <input
               type="text"
               name="profile.lastName"
-              placeholder="Nom"
+              id="profile.lastName"
               value={form.profile.lastName}
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
             {getFieldError("profile.lastName") && (
-              <p className="text-red-500 text-sm mt-1">
-                {getFieldError("profile.lastName")}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.lastName")}</p>
             )}
           </div>
 
           {/* Username */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="profile.username" className="block text-sm font-medium text-gray-700 mb-1">Nom d'utilisateur</label>
             <input
               type="text"
               name="profile.username"
-              placeholder="Nom d'utilisateur"
+              id="profile.username"
               value={form.profile.username}
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
-            {getFieldError("profile.username") && (
-              <p className="text-red-500 text-sm mt-1">
-                {getFieldError("profile.username")}
-              </p>
-            )}
+            {/* {getFieldError("profile.username") && (
+              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.username")}</p>
+            )} */}
           </div>
 
           {/* Phone */}
           <div className="w-3/4 mx-auto">
+            <label htmlFor="profile.phone" className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
             <input
               type="tel"
               name="profile.phone"
-              placeholder="Téléphone"
+              id="profile.phone"
               value={form.profile.phone}
               onChange={handleChange}
               className="w-full block px-4 py-2 border rounded"
             />
-            {getFieldError("profile.phone") && (
-              <p className="text-red-500 text-sm mt-1">
-                {getFieldError("profile.phone")}
-              </p>
-            )}
+            {/* {getFieldError("profile.phone") && (
+              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.phone")}</p>
+            )} */}
           </div>
 
           <div className="flex justify-center">
