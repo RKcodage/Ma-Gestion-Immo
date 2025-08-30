@@ -195,9 +195,10 @@ export default function Documents() {
               <p><strong>Adresse :</strong> {doc.leaseId?.unitId?.propertyId?.address} ({doc.leaseId?.unitId?.propertyId?.city})</p>
               <p><strong>Unité :</strong> {doc.leaseId?.unitId?.label}</p>
               <p>
-                <strong>Locataire :</strong>{" "}
-                {doc.leaseId?.tenantId?.userId?.profile?.firstName}{" "}
-                {doc.leaseId?.tenantId?.userId?.profile?.lastName}
+                <strong>Locataire{doc.leaseId?.tenants?.length > 1 ? "s" : ""} :</strong>{" "}
+                {doc.leaseId?.tenants
+                  ?.map((t) => `${t.userId?.profile?.firstName} ${t.userId?.profile?.lastName}`)
+                  .join(", ") || "—"}
               </p>
               <p><strong>Ajouté le :</strong> {new Date(doc.uploadedAt).toLocaleDateString()}</p>
               <div className="flex justify-end mt-2">
@@ -219,6 +220,7 @@ export default function Documents() {
           onClose={() => setModalOpen(false)}
           leases={leases}
           units={units}
+          properties={properties}
           token={token}
         />
       )}

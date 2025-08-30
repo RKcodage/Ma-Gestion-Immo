@@ -24,8 +24,12 @@ const Header = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Use click outside hook
   const notifRef = useRef();
   useClickOutside(notifRef, () => setNotifOpen(false));
+
+  const avatarRef = useRef();
+  useClickOutside(avatarRef, () => setOpen(false));
 
   // Notifications query
   const { data: notifications = [] } = useQuery({
@@ -138,7 +142,7 @@ const Header = () => {
         </div>
 
         {/* Avatar dropdown */}
-        <div className="relative">
+        <div className="relative" ref={avatarRef}>
           <button
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 focus:outline-none"
