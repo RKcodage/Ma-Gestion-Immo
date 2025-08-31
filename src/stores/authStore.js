@@ -2,6 +2,24 @@ import { create } from "zustand";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// --- helper base64url-safe pour lire l'exp du JWT ---
+function getJwtPayload(token) {
+  try {
+    const part = token?.split(".")[1];
+    if (!part) return null;
+
+    // base64url -> base64 (+ padding)
+    let base64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const pad = base64.length % 4;
+    if (pad) base64 += "=".repeat(4 - pad);
+
+    const json = atob(base64);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 const storedUser = localStorage.getItem("user");
 const parsedUser =
   storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
@@ -9,14 +27,52 @@ const parsedUser =
 const useAuthStore = create((set, get) => ({
   user: parsedUser,
   token: localStorage.getItem("token") || null,
+  tokenTimerId: null, // timer pour la déconnexion auto
   loading: false,
   error: null,
   errorCode: null,
 
+  // --- démarre un timer pour déconnecter à l'expiration du JWT ---
+  _startTokenTimer: (token) => {
+    const payload = getJwtPayload(token);
+    const exp = payload?.exp; // UNIX seconds
+    if (!exp) return; // si pas d'exp, on ne programme pas (ou on pourrait forcer logout)
+
+    const skewMs = 5000; // marge anti-dérive (5s)
+    const delay = Math.max(exp * 1000 - Date.now() - skewMs, 0);
+
+    console.debug(
+      "[auth] exp =",
+      new Date(exp * 1000).toISOString(),
+      "delayMs =",
+      delay,
+    );
+
+    const id = window.setTimeout(() => {
+      console.debug("[auth] auto-logout (token expired)");
+      get().logout();
+    }, delay);
+
+    set({ tokenTimerId: id });
+  },
+
+  _clearTokenTimer: () => {
+    const id = get().tokenTimerId;
+    if (id) clearTimeout(id);
+    set({ tokenTimerId: null });
+  },
+
   loadUserFromStorage: () => {
     const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
     if (storedUser && storedUser !== "undefined") {
       set({ user: JSON.parse(storedUser) });
+    }
+    if (token) {
+      set({ token });
+      get()._clearTokenTimer();
+      get()._startTokenTimer(token);
     }
   },
 
@@ -64,10 +120,14 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem("token", data.token);
       set({ token: data.token, loading: false, error: null, errorCode: null });
       get().setUser(data.user);
+
+      // programme la déconnexion à l'expiration
+      get()._clearTokenTimer();
+      get()._startTokenTimer(data.token);
+
       return data.user;
     } catch (error) {
       if (error.validationErrors) {
-        // déjà set plus haut
         throw error;
       } else {
         const msg = error?.message || "Sign up error";
@@ -125,6 +185,11 @@ const useAuthStore = create((set, get) => ({
       localStorage.setItem("token", data.token);
       set({ token: data.token, loading: false, error: null, errorCode: null });
       get().setUser(data.user);
+
+      // programme la déconnexion à l'expiration
+      get()._clearTokenTimer();
+      get()._startTokenTimer(data.token);
+
       return data.user;
     } catch (error) {
       const handled =
@@ -186,15 +251,30 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // LOGOUT
+  // LOGOUT (nettoie timer + redirige)
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    set({ user: null, token: null, error: null, errorCode: null });
+
+    const id = get().tokenTimerId;
+    if (id) clearTimeout(id);
+
+    set({
+      user: null,
+      token: null,
+      tokenTimerId: null,
+      error: null,
+      errorCode: null,
+    });
+
+    // redirection vers login
+    if (window.location.pathname !== "/") {
+      window.location.assign("/");
+    }
   },
 }));
 
-// Init store from storage au chargement
+// Init store from storage au chargement (reprogramme le timer si token présent)
 useAuthStore.getState().loadUserFromStorage();
 
 export default useAuthStore;
