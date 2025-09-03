@@ -73,7 +73,7 @@ const Header = () => {
     },
   });
 
-  // Unread messages count
+  // Unread messages count (chat icon badge)
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   if (!user) return null;
@@ -82,6 +82,7 @@ const Header = () => {
     <header className="w-full bg-white shadow px-6 py-4 flex justify-between items-center relative z-50">
       <div className="flex items-center gap-4">
         <button
+          onMouseDown={(e) => e.stopPropagation()} // avoid click outside hook to be executed
           onClick={toggleSidebar}
           className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
           aria-label="Toggle sidebar"
