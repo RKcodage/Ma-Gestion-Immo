@@ -7,7 +7,7 @@ export default function SEO({
   title = "Ma Gestion Immo",
   description = "Simplifiez votre gestion locative.",
   image = "/og-cover.jpg",
-  noIndex = false, // utile pour les pages privées / dashboard
+  noIndex = false, // useful for private pages
 }) {
   const { pathname } = useLocation();
   const url = `${SITE}${pathname}`;
