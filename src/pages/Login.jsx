@@ -29,8 +29,6 @@ const Login = () => {
     try {
       const user = await login(form.email, form.password);
   
-      toast.success("Connexion réussie !", { autoClose: 2500 });
-  
       if (user?.role) {
         navigate("/dashboard");
       } else {
