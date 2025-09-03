@@ -113,6 +113,14 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
     });
   };
 
+  // To set if form values are changed 
+  const isModified =
+  form.email !== (user?.email || "") ||
+  form.username !== (user?.profile?.username || "") ||
+  form.firstName !== (user?.profile?.firstName || "") ||
+  form.lastName !== (user?.profile?.lastName || "") ||
+  form.phone !== (user?.profile?.phone || "");
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const values = {
@@ -236,9 +244,15 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
         <div className="sm:col-span-2 flex justify-between items-center mt-4 gap-4 flex-wrap">
           <button
             type="submit"
-            className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition"
+            disabled={!isModified || mutation.isPending || mutation.isLoading}
+            aria-disabled={!isModified || mutation.isPending || mutation.isLoading}
+            className={`px-6 py-2 rounded transition
+              ${!isModified || mutation.isPending || mutation.isLoading
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-primary text-white hover:bg-primary/90"}
+            `}
           >
-            Enregistrer les modifications
+            {mutation.isPending || mutation.isLoading ? "Enregistrement..." : "Enregistrer les modifications"}          
           </button>
           <div className="flex gap-4">
             <button
