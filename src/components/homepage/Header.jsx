@@ -11,9 +11,9 @@ const Header = ({ className = "" }) => {
   return (
     <header className={`absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4 z-40 ${className}`}>
       <Link to="/">
-        <h1 className="text-white text-2xl font-bold">
+        <div className="text-white text-2xl font-bold">
           Ma Gestion Immo
-        </h1>
+        </div>
       </Link>
 
       <div className="space-x-6 flex items-center">
