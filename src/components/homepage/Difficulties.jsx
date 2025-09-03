@@ -12,15 +12,25 @@ const Difficulties = () => {
           </h2>
           
           <div className="grid md:grid-cols-2 gap-8 text-center">
-            {DIFFICULTIES_ITEMS.map((it) => (
-              <DifficultyCard
-                key={it.id}
-                title={`${it.icon} ${it.title}`}
-                className="hover:shadow transition-shadow"
-              >
-                {it.text}
-              </DifficultyCard>
-            ))}
+          {DIFFICULTIES_ITEMS.map(({ id, title, text, Icon: IconCmp }) => {
+              const titleNode = (
+                <span className="inline-flex items-center gap-3"> 
+                  <IconCmp size={20} className="text-primary shrink-0" aria-hidden="true" />
+                  <span>{title}</span>
+              </span>
+              );
+
+              return (
+                <DifficultyCard
+                  key={id}
+                  title={titleNode}          
+                  icon={null}                
+                  className="hover:shadow transition-shadow"
+                >
+                  {text}
+                </DifficultyCard>
+              );
+            })}
           </div>
         </div>
       </section>
