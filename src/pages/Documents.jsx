@@ -220,6 +220,7 @@ export default function Documents() {
           onClose={() => setModalOpen(false)}
           leases={leases}
           units={units}
+          properties={properties}
           token={token}
         />
       )}

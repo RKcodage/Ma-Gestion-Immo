@@ -1,25 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// Stores
 import useChatStore from "@/stores/chatStore";
 import useAuthStore from "@/stores/authStore";
-// Api
 import {
   fetchMessages,
   sendMessage,
   fetchConversations,
   markMessagesAsRead,
 } from "@/api/chat";
-// Modal
 import NewConversationModal from "../components/modals/NewConversationModal";
-// Import socket.io-client
-import { io } from "socket.io-client";
-
-// Connection to server with backend url
-const socket = io(import.meta.env.VITE_API_URL); 
+import socket from "../socketClient";
 
 export default function Chat() {
-  // Chat store using
   const {
     selectedConversation,
     setSelectedConversation,
@@ -35,23 +27,53 @@ export default function Chat() {
   const queryClient = useQueryClient();
 
   const [messageContent, setMessageContent] = useState("");
-  const messagesEndRef = useRef(null); // Ref to scroll directly to the bottom of a conversation
+  const [sendError, setSendError] = useState(null);
+  const [cooldown, setCooldown] = useState(0); 
+  const messagesEndRef = useRef(null);
 
-  // Conversation query to fetch conversations
+  
+
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
     queryKey: ["conversations"],
     queryFn: () => fetchConversations(token),
     enabled: !!token,
   });
 
-  // Messages query to fetch messages
   const { data: messages = [], isLoading: messagesLoading } = useQuery({
     queryKey: ["messages", selectedConversation],
     queryFn: () => fetchMessages(selectedConversation, token),
     enabled: !!selectedConversation && !!token,
   });
 
-  // Send message mutation 
+  // helpers pour détecter le rate limit & extraire Retry-After
+  const isRateLimitedError = (err) =>
+    err?.response?.status === 429 ||
+    err?.status === 429 ||
+    err?.code === 429 ||
+    /rate/i.test(err?.message || "") ||
+    err?.data?.error === "RATE_LIMITED";
+
+  const getRetryAfterSeconds = (err) => {
+    const headers = err?.response?.headers || {};
+    const ra = headers["retry-after"] ?? headers["Retry-After"];
+    if (!ra) return 10; // défaut = 10s
+    const n = Number(ra);
+    if (!Number.isNaN(n)) return Math.max(1, n);
+    const dt = new Date(ra);
+    if (!Number.isNaN(dt.getTime())) {
+      const diff = Math.ceil((dt.getTime() - Date.now()) / 1000);
+      return diff > 0 ? diff : 10;
+    }
+    return 10;
+  };
+
+  // décrémente le compte à rebours
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
   const sendMessageMutation = useMutation({
     mutationFn: () =>
       sendMessage(token, {
@@ -60,12 +82,22 @@ export default function Chat() {
       }),
     onSuccess: () => {
       setMessageContent("");
+      setSendError(null);
       queryClient.invalidateQueries(["messages", selectedConversation]);
       queryClient.invalidateQueries(["conversations"]);
     },
+    onError: (err) => {
+      if (isRateLimitedError(err)) {
+        const secs = getRetryAfterSeconds(err);
+        setCooldown(secs); // ⬅️ on (ré)active le cooldown
+        setSendError(`Trop de messages envoyés. Réessayez dans ${secs}s.`);
+      } else {
+        setSendError("Impossible d’envoyer le message. Réessayez.");
+      }
+      console.warn("sendMessage error:", err);
+    },
   });
 
-  // Mark message as read mutation
   const markMessagesAsReadMutation = useMutation({
     mutationFn: (userId) => markMessagesAsRead(userId, token),
     onSuccess: () => {
@@ -75,74 +107,65 @@ export default function Chat() {
     },
   });
 
-  // Handle submit message
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (messageContent.trim()) {
-      socket.emit("send-message", { // First sending message by socket
-        senderId: user._id,
-        recipientId: selectedConversation,
-        content: messageContent,
-      });
-      sendMessageMutation.mutate(); // Then save it with api
-    }
+    const content = messageContent.trim();
+    if (!content || !selectedConversation || sendMessageMutation.isLoading || cooldown > 0) return;
+    sendMessageMutation.mutate(); // envoi HTTP ; le serveur émettra "new-message"
   };
 
-  // Handle selected conversation
   const handleSelectConversation = (userId) => {
     setSelectedConversation(userId);
     markMessagesAsReadMutation.mutate(userId);
+    clearRealtimeMessages();
   };
 
-  // Socket use effect
+  // Socket listeners
   useEffect(() => {
-    if (!socket || !selectedConversation) return;
+    if (!socket || !selectedConversation || !user?._id) return;
 
-    socket.emit("join-conversation", selectedConversation); // Connect user to a specific conversation room (then server will be able to push incoming messages destined to user)
+    socket.emit("join-conversation", selectedConversation, (ack) => {
+      if (ack && ack.ok === false) console.warn("join-conversation failed:", ack.error);
+    });
 
     const handleNewMessage = (message) => {
+      const msgSender =
+        typeof message.senderId === "object" ? message.senderId?._id : message.senderId;
+      const msgRecipient =
+        typeof message.recipientId === "object" ? message.recipientId?._id : message.recipientId;
 
-      // Message received checking
-      const relevant =
-        message.senderId === selectedConversation ||
-        message.recipientId === selectedConversation; // If message is about conversation actually displayed
+      const relevant = msgSender === selectedConversation || msgRecipient === selectedConversation;
+      const isOwn = msgSender === user._id;
 
-      // If message is already sent by oneself (avoid duplicates because message already sent by api)
-      const isOwnMessage =
-        message.senderId === user._id || // Verify if senderId is a string
-        message.senderId?._id === user._id; // or an object 
-    
-      if (relevant && !isOwnMessage) {
-        addRealtimeMessage(message); // Add message in real time if checking is ok
-      }
+      if (relevant && !isOwn) addRealtimeMessage(message);
     };
-    
-    socket.on("new-message", handleNewMessage); // each time server send a "new-message" event, handleNewMessage is called
+
+    socket.on("new-message", handleNewMessage);
 
     return () => {
-      socket.emit("leave-conversation", selectedConversation); // Leaving room conversation (avoid to receive messages from another conversation)
-      socket.off("new-message", handleNewMessage); // Set off "new-message" event (avoid duplicates)
-      clearRealtimeMessages();
+      socket.emit("leave-conversation", selectedConversation);
+      socket.off("new-message", handleNewMessage);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, user?._id, addRealtimeMessage]);
 
-  // Automatic scroll to the bottom of a conversation
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ block: "end" });
-    }
+    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ block: "end" });
   }, [messages, realtimeMessages]);
 
-  // Combine database and socket messages to avoid duplicates
-  const allMessages = [...messages, ...realtimeMessages].filter(
-    (msg, index, self) =>
-      index ===
-      self.findIndex(
-        (m) =>
-          m._id === msg._id ||
-          (m.content === msg.content && m.sentAt === msg.sentAt)
-      )
-  );
+  // Avoid duplicated messages
+  const merged = [...(messages || []), ...realtimeMessages];
+  const seen = new Set();
+  const allMessages = merged
+    .filter((msg) => {
+      const sid = typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId;
+      const rid = typeof msg.recipientId === "object" ? msg.recipientId?._id : msg.recipientId;
+      const ts = msg.sentAt || msg.createdAt;
+      const key = msg._id || `${sid}-${rid}-${ts}-${msg.content}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => new Date(a.sentAt || a.createdAt) - new Date(b.sentAt || b.createdAt));
 
   return (
     <div className="h-[calc(100vh-120px)] flex border rounded overflow-hidden">
@@ -174,9 +197,13 @@ export default function Chat() {
                 <div className="font-medium">
                   {conv.user.profile.firstName} {conv.user.profile.lastName}
                 </div>
-                <div className="text-sm text-gray-500 truncate">{conv.lastMessage.content}</div>
+                <div className="text-sm text-gray-500 truncate">
+                  {conv.lastMessage?.content ?? ""}
+                </div>
                 <div className="text-xs text-gray-400">
-                  {new Date(conv.lastMessage.sentAt).toLocaleString()}
+                  {conv.lastMessage?.sentAt
+                    ? new Date(conv.lastMessage.sentAt).toLocaleString()
+                    : ""}
                 </div>
               </li>
             ))
@@ -190,9 +217,7 @@ export default function Chat() {
           <h3 className="font-semibold">
             {selectedConversation
               ? (() => {
-                  const convUser = conversations.find(
-                    (conv) => conv.user._id === selectedConversation
-                  );
+                  const convUser = conversations.find((c) => c.user._id === selectedConversation);
                   return convUser
                     ? `${convUser.user.profile.firstName} ${convUser.user.profile.lastName}`
                     : "Conversation inconnue";
@@ -200,6 +225,10 @@ export default function Chat() {
               : "Aucune conversation sélectionnée"}
           </h3>
         </header>
+
+        {sendError && (
+          <div className="mx-4 mt-3 mb-0 text-sm text-red-600">{sendError}</div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {messagesLoading ? (
@@ -209,12 +238,18 @@ export default function Chat() {
           ) : (
             <>
               {allMessages.map((msg) => {
-                const senderId = typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId; // Fix id error in console
+                const senderId =
+                  typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
                 const isOwn = senderId === user._id;
-                
+
                 return (
                   <div
-                    key={msg._id || `${msg.senderId}-${msg.sentAt}-${msg.content}`}
+                    key={
+                      msg._id ||
+                      `${senderId}-${
+                        typeof msg.recipientId === "object" ? msg.recipientId._id : msg.recipientId
+                      }-${msg.sentAt || msg.createdAt}-${msg.content}`
+                    }
                     className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
                     <div
@@ -233,22 +268,29 @@ export default function Chat() {
         </div>
 
         {selectedConversation && (
-          <form
-            className="p-4 border-t bg-white flex gap-2"
-            onSubmit={handleSubmit}
-          >
+          <form className="p-4 border-t bg-white flex gap-2" onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder="Écrire un message..."
               className="flex-1 border px-4 py-2 rounded"
               value={messageContent}
               onChange={(e) => setMessageContent(e.target.value)}
+              disabled={sendMessageMutation.isLoading || cooldown > 0}
             />
             <button
               type="submit"
-              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
+              disabled={
+                sendMessageMutation.isLoading || cooldown > 0 || !messageContent.trim()
+              }
+              aria-disabled={sendMessageMutation.isLoading || cooldown > 0}
+              title={cooldown > 0 ? `Patientez ${cooldown}s` : "Envoyer"}
             >
-              Envoyer
+              {sendMessageMutation.isLoading
+                ? "Envoi..."
+                : cooldown > 0
+                ? `Patientez ${cooldown}s`
+                : "Envoyer"}
             </button>
           </form>
         )}
