@@ -13,7 +13,7 @@ const Sidebar = () => {
 
   if (!user?.role) return null;
 
-  // Light dark background on menu title if user are on corresponding page 
+  // Light dark bg on menu links if user are on page
   const commonClasses = (path) =>
     `block px-4 py-2 rounded hover:bg-gray-100 transition ${
       pathname === path ? "bg-gray-100 font-semibold" : "text-gray-700"
@@ -21,7 +21,7 @@ const Sidebar = () => {
 
   // Click hook to close sidebar if user click outside
   useClickOutside(asideRef, () => setSidebarOpen(false), sidebarOpen);
-  
+
   // To close also with Escape key
   useEffect(() => {
     if (!sidebarOpen) return;
@@ -49,6 +49,7 @@ const Sidebar = () => {
         }`}
       >
         <nav className="flex flex-col gap-2">
+          {/* Dashboard  Links */}
           {user.role === "Propriétaire" ? (
             <>
               <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
@@ -59,10 +60,46 @@ const Sidebar = () => {
           ) : (
             <>
               <Link to="/dashboard" className={commonClasses("/dashboard")}>Tableau de bord</Link>
-              <Link to="/dashboard/leases" className={commonClasses("/dashboard/leases")}>Baux</Link>
+              <Link to="/dashboard/leases" className={commonClasses("/dashboard/leases")}>Locations</Link>
               <Link to="/dashboard/documents" className={commonClasses("/dashboard/documents")}>Documents</Link>
             </>
           )}
+
+          {/* Separator */}
+          <div className="my-4 border-t border-gray-200" />
+
+          {/* General section */}
+          <div className="px-4 text-xs uppercase tracking-wide text-gray-400 mb-1">
+            Général
+          </div>
+          <Link
+            to="/"
+            className={commonClasses("/")}
+            onClick={() => setSidebarOpen(false)}
+          >
+            Accueil du site
+          </Link>
+          <Link
+            to="/cgu"
+            className={commonClasses("/cgu")}
+            onClick={() => setSidebarOpen(false)}
+          >
+            CGU
+          </Link>
+          <Link
+            to="/legal-mentions"
+            className={commonClasses("/mentions-legales")}
+            onClick={() => setSidebarOpen(false)}
+          >
+            Mentions légales
+          </Link>
+          <Link
+            to="/privacy-policy"
+            className={commonClasses("/confidentialite")}
+            onClick={() => setSidebarOpen(false)}
+          >
+            Politique de confidentialité
+          </Link> 
         </nav>
       </aside>
     </>
