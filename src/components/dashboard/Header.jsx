@@ -1,15 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// Stores
 import useAuthStore from "../../stores/authStore";
 import useSidebarStore from "../../stores/sidebarStore";
+// Api calls
 import { fetchNotifications, markNotificationAsRead } from "../../api/notification";
 import { fetchChatUnreadCount } from "../../api/chat"; 
+// Hook
 import useClickOutside from "../../hooks/useClickOutside";
+// Icons
 import NotificationIcon from "../icons/NotificationIcon";
-import HomeIcon from "../icons/HomeIcon";
+/* import HomeIcon from "../icons/HomeIcon"; */
+import { CgMenuMotion } from "react-icons/cg";
 import ChatIcon from "../icons/ChatIcon";
+import { ChevronDown } from "lucide-react";
+// Socket client
 import { io } from "socket.io-client";
 
 const socket = io(import.meta.env.VITE_API_URL);
@@ -67,7 +73,7 @@ const Header = () => {
     },
   });
 
-  // Unread messages count
+  // Unread messages count (chat icon badge)
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   if (!user) return null;
@@ -76,11 +82,12 @@ const Header = () => {
     <header className="w-full bg-white shadow px-6 py-4 flex justify-between items-center relative z-50">
       <div className="flex items-center gap-4">
         <button
+          onMouseDown={(e) => e.stopPropagation()} // avoid click outside hook to be executed
           onClick={toggleSidebar}
           className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
           aria-label="Toggle sidebar"
         >
-          <HomeIcon className="w-5 h-5 text-gray-800" />
+          <CgMenuMotion className="w-5 h-5 text-gray-800" />
         </button>
         <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
       </div>
