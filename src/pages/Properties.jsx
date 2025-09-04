@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
 import {
   Table,
   TableBody,
@@ -11,7 +10,6 @@ import {
 } from "@/components/components/ui/table";
 import { columns } from "../components/properties/columns";
 import PropertyCarousel from "../components/properties/PropertyCarousel";
-
 // Api
 import { fetchPropertiesByOwner, deleteProperty } from "../api/property";
 import { fetchOwnerByUserId } from "../api/owner";
@@ -21,6 +19,7 @@ import useAuthStore from "../stores/authStore";
 import AddPropertyModal from "../components/modals/AddPropertyModal";
 import EditPropertyModal from "../components/modals/EditPropertyModal";
 import ConfirmModal from "@/components/modals/ConfirmModal";
+import { IoIosAddCircle } from "react-icons/io";
 
 export default function Properties() {
   const user = useAuthStore((state) => state.user);
@@ -96,9 +95,9 @@ export default function Properties() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <button
           onClick={() => setModalOpen(true)}
-          className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary/90 transition w-full sm:w-auto"
+          className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary/90 transition w-full sm:w-auto flex items-center gap-2"
         >
-          + Ajouter une propriété
+          <IoIosAddCircle /> Ajouter une propriété
         </button>
 
         <input
