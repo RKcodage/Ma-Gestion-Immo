@@ -48,7 +48,7 @@ const Sidebar = () => {
           sidebarOpen ? "fixed left-0 top-18 translate-x-0" : "fixed -translate-x-full"
         }`}
       >
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-2" data-tour="sidebar">
           {/* Dashboard  Links */}
           {user.role === "Propriétaire" ? (
             <>
