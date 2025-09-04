@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 // Stores
 import useAuthStore from "../../stores/authStore";
 import useSidebarStore from "../../stores/sidebarStore";
+import useOnboardingStore from "../../stores/onboardingStore";
 // Api calls
 import { fetchNotifications, markNotificationAsRead } from "../../api/notification";
 import { fetchChatUnreadCount } from "../../api/chat"; 
@@ -25,6 +26,7 @@ const Header = () => {
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
+  const startDashboardTour = useOnboardingStore((s) => s.startDashboardTour);
   const [open, setOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const navigate = useNavigate();
@@ -86,10 +88,11 @@ const Header = () => {
           onClick={toggleSidebar}
           className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
           aria-label="Toggle sidebar"
+          data-tour="header-menu"
         >
           <CgMenuMotion className="w-5 h-5 text-gray-800" />
         </button>
-        <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
+        <h1 className="text-xl font-bold text-primary" data-tour="header-title">Ma Gestion Immo</h1>
       </div>
 
       <div className="flex items-center gap-4 relative">
@@ -98,6 +101,7 @@ const Header = () => {
           <button
             onClick={() => navigate("/dashboard/chat")}
             className="relative flex items-center justify-center"
+            data-tour="chat-button"
           >
             <ChatIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
             {unreadChatCount > 0 && (
@@ -113,6 +117,7 @@ const Header = () => {
           <button
             className="relative"
             onClick={() => setNotifOpen((prev) => !prev)}
+            data-tour="notifications-button"
           >
             <NotificationIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
             {unreadCount > 0 && (
@@ -153,6 +158,7 @@ const Header = () => {
           <button
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 focus:outline-none"
+            data-tour="avatar-button"
           >
             {user?.profile?.avatar ? (
               <img
@@ -170,6 +176,20 @@ const Header = () => {
 
           {open && (
             <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg text-sm">
+              {/* Discover the interface (navigate to dashboard then start the tour) */}
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
+                onClick={() => {
+                  // Close dropdown first
+                  setOpen(false);
+                  // Navigate to dashboard home to ensure all anchors exist
+                  navigate("/dashboard");
+                  // Small delay to allow route to mount, then start the tour
+                  setTimeout(() => startDashboardTour(), 80);
+                }}
+              >
+                Découvrir l’interface
+              </button>
               <Link
                 to="/dashboard/account"
                 className="block px-4 py-2 hover:bg-gray-100 text-gray-700"
