@@ -13,6 +13,7 @@ const Login = () => {
   const login = useAuthStore((state) => state.login);
   const loading = useAuthStore((state) => state.loading);
   const error = useAuthStore((state) => state.error);
+  const errorCode = useAuthStore((state) => state.errorCode);
 
   // Handle change
   const handleChange = (e) => {
@@ -23,18 +24,24 @@ const Login = () => {
   // Handle submit 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return; 
+  
     try {
-      const userData = await login(form.email, form.password);
-      // toast.success("Connexion réussie !", { autoClose: 3000 });
-
-      if (userData.role) {
+      const user = await login(form.email, form.password);
+  
+      if (user?.role) {
         navigate("/dashboard");
       } else {
         navigate("/role");
       }
     } catch (err) {
-      console.error("Erreur lors de la connexion", err);
-      toast.error("Échec de la connexion : " + err.message, { autoClose: 3000 });
+      const msg = err?.message || "Erreur de connexion";
+  
+      if (errorCode === "RATE_LIMITED") {
+        toast.error(msg, { autoClose: 6000 });
+      } else {
+        toast.error("Échec de la connexion : " + msg, { autoClose: 3500 });
+      }
     }
   };
 
