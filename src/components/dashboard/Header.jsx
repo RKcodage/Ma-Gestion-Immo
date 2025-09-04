@@ -1,13 +1,24 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+// Stores
 import useAuthStore from "../../stores/authStore";
 import useSidebarStore from "../../stores/sidebarStore";
+// Api calls
 import { fetchNotifications, markNotificationAsRead } from "../../api/notification";
-import NotificationIcon from "../icons/NotificationIcon";
-import HomeIcon from "../icons/HomeIcon";
+import { fetchChatUnreadCount } from "../../api/chat"; 
+// Hook
 import useClickOutside from "../../hooks/useClickOutside";
+// Icons
+import NotificationIcon from "../icons/NotificationIcon";
+/* import HomeIcon from "../icons/HomeIcon"; */
+import { CgMenuMotion } from "react-icons/cg";
+import ChatIcon from "../icons/ChatIcon";
+import { ChevronDown } from "lucide-react";
+// Socket client
+import { io } from "socket.io-client";
+
+const socket = io(import.meta.env.VITE_API_URL);
 
 const Header = () => {
   const user = useAuthStore((state) => state.user);
@@ -19,15 +30,42 @@ const Header = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  // Use click outside hook
   const notifRef = useRef();
   useClickOutside(notifRef, () => setNotifOpen(false));
 
+  const avatarRef = useRef();
+  useClickOutside(avatarRef, () => setOpen(false));
+
+  // Notifications query
   const { data: notifications = [] } = useQuery({
     queryKey: ["notifications"],
     queryFn: () => fetchNotifications(token),
     enabled: !!token,
   });
 
+  // Unread messages query
+  const { data: unreadChatCount = 0 } = useQuery({
+    queryKey: ["chat-unread-count"],
+    queryFn: () => fetchChatUnreadCount(token),
+    enabled: !!token,
+  });
+
+  // Real time update by socket (for unread messages badge)
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const handleNewMessage = (message) => {
+      if (message.recipientId === user._id) {
+        queryClient.invalidateQueries(["chat-unread-count"]);
+      }
+    };
+
+    socket.on("new-message", handleNewMessage);
+    return () => socket.off("new-message", handleNewMessage);
+  }, [token, user, queryClient]);
+
+  // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: (id) => markNotificationAsRead(id, token),
     onSuccess: () => {
@@ -35,6 +73,7 @@ const Header = () => {
     },
   });
 
+  // Unread messages count (chat icon badge)
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   if (!user) return null;
@@ -43,24 +82,39 @@ const Header = () => {
     <header className="w-full bg-white shadow px-6 py-4 flex justify-between items-center relative z-50">
       <div className="flex items-center gap-4">
         <button
+          onMouseDown={(e) => e.stopPropagation()} // avoid click outside hook to be executed
           onClick={toggleSidebar}
           className="w-10 h-10 bg-white border rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition"
           aria-label="Toggle sidebar"
         >
-          <HomeIcon className="w-5 h-5 text-gray-800" />
+          <CgMenuMotion className="w-5 h-5 text-gray-800" />
         </button>
         <h1 className="text-xl font-bold text-primary">Ma Gestion Immo</h1>
       </div>
 
-      <div className="flex items-center gap-1 relative">
-        {/* Bell icon with badge */}
-        <div className="relative flex items-center justify-center h-10 w-10" ref={notifRef}>
+      <div className="flex items-center gap-4 relative">
+        {/* Chat icon with unread badge */}
+        <div className="relative">
+          <button
+            onClick={() => navigate("/dashboard/chat")}
+            className="relative flex items-center justify-center"
+          >
+            <ChatIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
+            {unreadChatCount > 0 && (
+              <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                {unreadChatCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Notifications icon with badge */}
+        <div className="relative flex items-center justify-center" ref={notifRef}>
           <button
             className="relative"
             onClick={() => setNotifOpen((prev) => !prev)}
           >
             <NotificationIcon className="w-[1.1em] h-[1.1em] text-gray-800" />
-            {/* <Bell className="w-5 h-5 text-gray-800" /> */}
             {unreadCount > 0 && (
               <span className="absolute -top-3 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
                 {unreadCount}
@@ -69,40 +123,33 @@ const Header = () => {
           </button>
 
           {notifOpen && (
-            <div className="absolute top-9 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
+            <div className="absolute top-7 right-0 mt-2 w-72 bg-white border rounded shadow-lg text-sm max-h-80 overflow-auto z-50">
               {notifications.length === 0 ? (
                 <p className="p-4 text-gray-500 text-sm text-center">Aucune notification</p>
               ) : (
                 <ul className="divide-y">
                   {notifications.slice(0, 5).map((notif) => (
                     <li
-                    key={notif._id}
-                    className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => {
-                      markAsReadMutation.mutate(notif._id);
-                      setNotifOpen(false);
-                      if (notif.link) navigate(notif.link);
-                    }}
-                  >
-                    <p className="text-sm text-gray-700">{notif.message}</p>
-                    <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
-                  </li>
-                  
+                      key={notif._id}
+                      className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        markAsReadMutation.mutate(notif._id);
+                        setNotifOpen(false);
+                        if (notif.link) navigate(notif.link);
+                      }}
+                    >
+                      <p className="text-sm text-gray-700">{notif.message}</p>
+                      <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
+                    </li>
                   ))}
                 </ul>
               )}
-              <Link
-                to="/dashboard/notifications"
-                className="block text-center text-sm text-primary hover:underline p-2"
-              >
-                Voir toutes les notifications
-              </Link>
             </div>
           )}
         </div>
 
         {/* Avatar dropdown */}
-        <div className="relative">
+        <div className="relative" ref={avatarRef}>
           <button
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 focus:outline-none"

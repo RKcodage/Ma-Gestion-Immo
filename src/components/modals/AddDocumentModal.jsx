@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { uploadLeaseDocument } from "@/api/document";
 import useAuthStore from "@/stores/authStore";
 
-const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
+const AddDocumentModal = ({ open, onClose, leases = [], units = [], properties = [] }) => {
   const token = useAuthStore((state) => state.token);
   const role = useAuthStore((state) => state.user?.role);
   const queryClient = useQueryClient();
@@ -15,28 +15,41 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
     type: "",
     leaseId: "",
     unitId: "",
+    propertyId: "",
     file: null,
     isPrivate: false,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+  
+    if (name === "unitId") {
+      // If user is an owner, find the lease related to the choosen unit 
+      const matchingLease = leases.find((l) => l.unitId?._id === value);
 
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : type === "file" ? files[0] : value,
-    }));
+      setForm((prev) => ({
+        ...prev,
+        unitId: value,
+        leaseId: matchingLease ? matchingLease._id : "", 
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : type === "file" ? files[0] : value,
+      }));
+    }
   };
+  
 
   const mutation = useMutation({
     mutationFn: () => uploadLeaseDocument(form, token),
     onSuccess: () => {
       toast.success("Document ajouté !");
       queryClient.invalidateQueries(["documents"]);
+      queryClient.invalidateQueries(["notifications"]);
       onClose();
     },
     onError: () => {
-      
       toast.error("Erreur lors de l'ajout du document");
     },
   });
@@ -44,12 +57,27 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!form.file || !form.name || !form.type || (!form.leaseId && !form.unitId)) {
+    if (!form.file || !form.name || !form.type) {
       return toast.error("Tous les champs obligatoires doivent être remplis");
+    }
+
+    // Owner : unit required
+    if (role === "Propriétaire" && !form.unitId) {
+      return toast.error("Sélectionnez une unité concernée");
+    }
+
+    // Tenant : lease required
+    if (role === "Locataire" && !form.leaseId) {
+      return toast.error("Sélectionnez le bail concerné");
     }
 
     mutation.mutate();
   };
+
+  // Filtered units by property selected
+  const filteredUnits = form.propertyId
+    ? units.filter((u) => u.propertyId?._id === form.propertyId)
+    : units;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -85,33 +113,53 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
             <option value="Avis d'imposition">Avis d'imposition</option>
           </select>
 
-          <select
-            name="leaseId"
-            value={form.leaseId}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
-          >
-            <option value="">-- Bail concerné --</option>
-            {leases.map((l) => (
-              <option key={l._id} value={l._id}>
-                {l.unitId?.label} - {l.unitId?.propertyId?.address}
-              </option>
-            ))}
-          </select>
+          {role === "Propriétaire" && (
+            <>
+              <select
+                name="propertyId"
+                value={form.propertyId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded"
+              >
+                <option value="">-- Sélectionnez une propriété --</option>
+                {properties.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.address} ({p.city})
+                  </option>
+                ))}
+              </select>
 
-          <select
-            name="unitId"
-            value={form.unitId}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
-          >
-            <option value="">-- Unité concernée --</option>
-            {units.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.label} 
-              </option>
-            ))}
-          </select>
+              <select
+                name="unitId"
+                value={form.unitId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded"
+              >
+                <option value="">-- Sélectionnez une unité --</option>
+                {filteredUnits.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.label}
+                  </option>
+                ))}
+              </select>
+            </>
+          )}
+
+          {role === "Locataire" && (
+            <select
+              name="leaseId"
+              value={form.leaseId}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded"
+            >
+              <option value="">-- Sélectionnez votre bail --</option>
+              {leases.map((l) => (
+                <option key={l._id} value={l._id}>
+                  {l.unitId?.label} - {l.unitId?.propertyId?.address}
+                </option>
+              ))}
+            </select>
+          )}
 
           <input
             type="file"
@@ -133,14 +181,8 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [] }) => {
                 className="w-4 h-4"
               />
               <label htmlFor="isPrivate" className="text-sm">
-                Document privé
+                Document privé (visible uniquement par vous)
               </label>
-              <span
-                title="Un document privé ne sera visible que par vous (le propriétaire)."
-                className="text-gray-400 text-xs"
-              >
-                (Le locataire ne pourra pas le voir)
-              </span>
             </div>
           )}
 

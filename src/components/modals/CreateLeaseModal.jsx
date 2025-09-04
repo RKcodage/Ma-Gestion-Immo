@@ -9,7 +9,7 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
 
   const [form, setForm] = useState({
     unitId: "",
-    tenantEmail: "",
+    tenantEmails: [""],
     startDate: "",
     endDate: "",
     rentAmount: "",
@@ -54,7 +54,53 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
             ))}
           </select>
 
-          <input type="email" name="tenantEmail" placeholder="Email du locataire" value={form.tenantEmail} onChange={handleChange} required className="w-full px-4 py-2 border rounded" />
+          <div className="space-y-2">
+  <label className="text-sm font-medium">Emails des locataires</label>
+
+  {form.tenantEmails.map((email, index) => (
+    <div key={index} className="flex items-center gap-2">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => {
+          const updated = [...form.tenantEmails];
+          updated[index] = e.target.value;
+          setForm((prev) => ({ ...prev, tenantEmails: updated }));
+        }}
+        required
+        placeholder={`Locataire ${index + 1}`}
+        className="flex-1 px-4 py-2 border rounded"
+      />
+
+      {form.tenantEmails.length > 1 && (
+        <button
+          type="button"
+          onClick={() => {
+            const updated = form.tenantEmails.filter((_, i) => i !== index);
+            setForm((prev) => ({ ...prev, tenantEmails: updated }));
+          }}
+          className="text-red-500 hover:text-red-700"
+        >
+          ❌
+        </button>
+      )}
+    </div>
+  ))}
+
+  <button
+    type="button"
+    onClick={() =>
+      setForm((prev) => ({
+        ...prev,
+        tenantEmails: [...prev.tenantEmails, ""],
+      }))
+    }
+    className="text-blue-500 hover:underline text-sm"
+  >
+    ➕ Ajouter un locataire
+  </button>
+</div>
+
 
           <input type="date" name="startDate" value={form.startDate} onChange={handleChange} required className="w-full px-4 py-2 border rounded" />
           <input type="date" name="endDate" value={form.endDate} onChange={handleChange} className="w-full px-4 py-2 border rounded" />

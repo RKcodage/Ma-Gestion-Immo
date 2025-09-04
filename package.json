@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -17,12 +19,17 @@
     "@tanstack/react-query-devtools": "^5.72.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "js-cookie": "^3.0.5",
     "js-cookies": "^1.0.4",
     "lucide-react": "^0.474.0",
     "react": "^18.3.1",
+    "react-cookie-consent": "^9.0.0",
     "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5",
+    "react-icons": "^5.5.0",
     "react-router-dom": "^7.3.0",
     "react-toastify": "^11.0.5",
+    "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.3"
@@ -30,19 +37,28 @@
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@tanstack/eslint-plugin-query": "^5.72.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
+    "eslint-plugin-vitest-globals": "^1.5.0",
     "globals": "^15.14.0",
+    "jsdom": "^26.1.0",
+    "msw": "^2.10.3",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^3.4.17",
-    "vite": "^6.0.5"
+    "vite": "^6.0.5",
+    "vitest": "^3.2.4"
   }
 }
