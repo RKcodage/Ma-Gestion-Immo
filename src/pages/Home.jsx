@@ -15,8 +15,6 @@ const Home = () => {
       <SEO
         title="Ma Gestion Immo — Simplifiez votre gestion locative"
         description="Centralisez documents, baux et échanges avec vos locataires, le tout en un seul endroit."
-        image="/og-cover.jpg"
-        // noIndex={false} // garde par défaut pour les pages publiques
       />
       
       <Hero />
