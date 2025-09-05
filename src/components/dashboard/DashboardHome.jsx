@@ -1,7 +1,7 @@
 import useAuthStore from "../../stores/authStore";
 import { useQuery } from "@tanstack/react-query";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
-import { Plus } from "lucide-react";
+import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare } from "lucide-react";
 import { documentTemplates } from "../../constants/documentTemplates"; 
 import DashboardTile from "./DashboardTile";
 
@@ -39,7 +39,7 @@ const DashboardHome = () => {
             dataTour="dashboard-add-property"
             title="Ajouter une propriété"
             description="Créez un nouveau bien immobilier."
-            icon={<Plus className="text-primary stroke-[3]" />}
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
           />
 
           {/* Add Lease */}
@@ -47,7 +47,7 @@ const DashboardHome = () => {
             dataTour="dashboard-add-lease"
             title="Ajouter un bail"
             description="Ajoutez un nouveau bail locatif."
-            icon={<Plus className="text-primary stroke-[3]" />}
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
           />
 
           {/* Add document */}
@@ -55,7 +55,7 @@ const DashboardHome = () => {
             dataTour="dashboard-add-document"
             title="Ajouter un document"
             description="Ajoutez un document lié à un bien."
-            icon={<Plus className="text-primary stroke-[3]" />}
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
           />
 
           {/* My properties */}
@@ -64,6 +64,7 @@ const DashboardHome = () => {
             dataTour="dashboard-properties"
             title="Mes propriétés"
             description="Gérez vos biens immobiliers."
+            icon={<Building2 className="w-5 h-5 text-primary" />}
           />
 
           {/* My leases */}
@@ -72,6 +73,7 @@ const DashboardHome = () => {
             dataTour="dashboard-leases"
             title="Mes baux"
             description="Suivez vos contrats et leur situation."
+            icon={<FileSignature className="w-5 h-5 text-primary" />}
           />
           
           {/* Documents */}
@@ -80,10 +82,11 @@ const DashboardHome = () => {
             dataTour="dashboard-documents"
             title="Mes documents"
             description="Téléchargez ou visualisez vos fichiers."
+            icon={<Files className="w-5 h-5 text-primary" />}
           />
           
           {/* Date payments calendar */}
-          <DashboardTile dataTour="dashboard-rent-calendar" title="📅 Calendrier des loyers">
+          <DashboardTile dataTour="dashboard-rent-calendar" title="Calendrier des loyers" icon={<CalendarDays className="w-5 h-5 text-primary" />}>
             {upcomingPayments.length === 0 ? (
               <p className="text-sm text-gray-600">Aucune échéance à venir</p>
             ) : (
@@ -105,7 +108,7 @@ const DashboardHome = () => {
           </DashboardTile>
           
           {/* Leases payments historical */}
-          <DashboardTile dataTour="dashboard-rent-history" title="📊 Historique des loyers">
+          <DashboardTile dataTour="dashboard-rent-history" title="Historique des loyers" icon={<History className="w-5 h-5 text-primary" />}>
             {rentHistory.length === 0 ? (
               <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
             ) : (
@@ -133,7 +136,7 @@ const DashboardHome = () => {
           </DashboardTile>
 
           {/* Documents templates */}
-          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents">
+          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
             <ul className="space-y-1 text-sm text-primary">
               {documentTemplates.map((doc) => (
                 <li key={doc.name}>
@@ -153,6 +156,7 @@ const DashboardHome = () => {
             dataTour="dashboard-leases"
             title="Mes Locations"
             description="Accédez aux détails de vos locations: contrat, loyers, documents."
+            icon={<KeyRound className="w-5 h-5 text-primary" />}
           />
           
           {/* Chat */}
@@ -161,6 +165,7 @@ const DashboardHome = () => {
             dataTour="dashboard-chat-card"
             title="Contacter votre propriétaire"
             description="Posez vos questions directement à votre ou vos bailleurs."
+            icon={<MessageSquare className="w-5 h-5 text-primary" />}
           />
 
           {/* Documents */}
@@ -169,10 +174,11 @@ const DashboardHome = () => {
             dataTour="dashboard-documents"
             title="Mes documents"
             description="Accédez à vos documents: bail, quittances, justificatifs etc."
+            icon={<Files className="w-5 h-5 text-primary" />}
           />
 
           {/* Date payments calendar (tenant view) */}
-          <DashboardTile dataTour="dashboard-rent-calendar" title="📅 Calendrier des loyers">
+          <DashboardTile dataTour="dashboard-rent-calendar" title="Calendrier des loyers" icon={<CalendarDays className="w-5 h-5 text-primary" />}>
             {upcomingPayments.length === 0 ? (
               <p className="text-sm text-gray-600">Aucune échéance à venir</p>
             ) : (
@@ -194,7 +200,7 @@ const DashboardHome = () => {
           </DashboardTile>
 
           {/* Leases payments historical (tenant view) */}
-          <DashboardTile dataTour="dashboard-rent-history" title="📊 Historique des loyers">
+          <DashboardTile dataTour="dashboard-rent-history" title="Historique des loyers" icon={<History className="w-5 h-5 text-primary" />}>
             {rentHistory.length === 0 ? (
               <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
             ) : (
@@ -222,7 +228,7 @@ const DashboardHome = () => {
           </DashboardTile>
 
           {/* Documents templates (tenant view) */}
-          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents">
+          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
             <ul className="space-y-1 text-sm text-primary">
               {documentTemplates.map((doc) => (
                 <li key={doc.name}>
