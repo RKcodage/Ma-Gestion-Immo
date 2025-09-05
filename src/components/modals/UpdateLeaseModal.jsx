@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateLease } from "@/api/lease";
 import { toast } from "react-toastify";
+import useAuthStore from "@/stores/authStore";
 
 export default function UpdateLeaseModal({ open, onClose, lease, token }) {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
   const [form, setForm] = useState({
     startDate: "",
     endDate: "",
@@ -45,6 +47,11 @@ export default function UpdateLeaseModal({ open, onClose, lease, token }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // UI guard: only owners can update a lease
+    if (user?.role !== "Propriétaire") {
+      toast.error("Action non autorisée");
+      return;
+    }
     mutation.mutate(form);
   };
 

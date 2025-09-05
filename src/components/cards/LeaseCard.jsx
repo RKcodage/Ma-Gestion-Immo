@@ -183,27 +183,31 @@ export default function LeaseCard({
           <span className="hidden sm:inline">Documents</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => onEdit?.(lease)}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-primary hover:bg-primary/80"
-          title="Modifier"
-          aria-label="Modifier"
-        >
-          <Pencil className="w-4 h-4" />
-          <span className="hidden sm:inline">Modifier</span>
-        </button>
+        {userRole === "Propriétaire" && (
+          <button
+            type="button"
+            onClick={() => onEdit?.(lease)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-primary hover:bg-primary/80"
+            title="Modifier"
+            aria-label="Modifier"
+          >
+            <Pencil className="w-4 h-4" />
+            <span className="hidden sm:inline">Modifier</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          onClick={() => onDelete?.(lease)}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
-          title="Supprimer"
-          aria-label="Supprimer"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span className="hidden sm:inline">Supprimer</span>
-        </button>
+        {userRole === "Propriétaire" && (
+          <button
+            type="button"
+            onClick={() => onDelete?.(lease)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
+            title="Supprimer"
+            aria-label="Supprimer"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Supprimer</span>
+          </button>
+        )}
       </div>
     </div>
   );
