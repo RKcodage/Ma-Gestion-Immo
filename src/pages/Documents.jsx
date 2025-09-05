@@ -94,7 +94,7 @@ export default function Documents() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes documents</h1>
+      <h1 className="text-2xl font-bold mb-8">Mes Documents</h1>
 
       <div className="flex justify-between items-center mb-6">
         <button
@@ -160,6 +160,7 @@ export default function Documents() {
             <li key={doc._id}>
               <DocumentCard
                 doc={doc}
+                canDelete={String(doc.uploaderId) === String(user._id)}
                 onDownload={(d) => downloadLeaseDocument(d, token)}
                 onDelete={(d) => {
                   setSelectedDocId(d._id);
