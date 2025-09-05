@@ -1,10 +1,14 @@
-// ... tes imports
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+// Stores
 import useAuthStore from "../stores/authStore";
+// Api
 import { fetchOwnerByUserId } from "../api/owner";
 import { fetchTenantByUserId } from "../api/tenant";
 import { fetchUserById, uploadAvatar } from "../api/user";
+// SEO
+import SEO from "../components/SEO/Seo";
+// Components
 import AccountUserInfos from "../components/account/AccountUserInfos";
 import AccountRoleInfos from "../components/account/AccountRoleInfos";
 
@@ -34,7 +38,7 @@ const UserAccount = () => {
     enabled: !!user?._id,
   });
 
-  // Set form selon le rôle
+  // Set form depends on user role 
   useEffect(() => {
     if (user.role === "Propriétaire" && ownerData) {
       setForm({
@@ -90,8 +94,13 @@ const UserAccount = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded">
+      {/* Page SEO */}
+      <SEO title="Ma Gestion Immo - Mon Compte" noIndex />
+      
+      {/* Page title */}
       <h2 className="text-2xl font-bold mb-4">Mon compte</h2>
 
+      {/* User infos */}
       <AccountUserInfos
         email={data?.email}
         avatarError={avatarError}
@@ -99,6 +108,7 @@ const UserAccount = () => {
         handleFileChange={handleFileChange}
       />
 
+      {/* User role infos */}
       <AccountRoleInfos form={form} setForm={setForm} />
     </div>
   );
