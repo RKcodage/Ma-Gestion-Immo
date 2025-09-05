@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createLease } from "@/api/lease";
 import { toast } from "react-toastify";
+import useAuthStore from "@/stores/authStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/components/ui/dialog";
 
 const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) => {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
 
   const [form, setForm] = useState({
     unitId: "",
@@ -36,6 +38,11 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // UI guard: only owners can create a lease
+    if (user?.role !== "Propriétaire") {
+      toast.error("Action non autorisée");
+      return;
+    }
     mutation.mutate(form);
   };
 
