@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Table,
@@ -20,8 +21,10 @@ import AddPropertyModal from "../components/modals/AddPropertyModal";
 import EditPropertyModal from "../components/modals/EditPropertyModal";
 import ConfirmModal from "@/components/modals/ConfirmModal";
 import { IoIosAddCircle } from "react-icons/io";
+import { ArrowLeft } from "lucide-react";
 
 export default function Properties() {
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
 
@@ -90,7 +93,16 @@ export default function Properties() {
   
   return (
     <div className="px-6 py-2">
-      <h2 className="text-2xl font-bold mb-8">Mes propriétés</h2>
+      <div className="flex items-center gap-3 mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h2 className="text-2xl font-bold">Mes Propriétés</h2>
+      </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
         <button
