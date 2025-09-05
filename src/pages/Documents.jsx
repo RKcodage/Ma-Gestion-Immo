@@ -11,6 +11,7 @@ import {
 import AddDocumentModal from "../components/modals/AddDocumentModal";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import DocumentCard from "@/components/cards/DocumentCard";
+import Select from "@/components/components/ui/select";
 import { toast } from "react-toastify";
 import useClickOutside from "../hooks/useClickOutside";
 import { IoIosAddCircle } from "react-icons/io";
@@ -93,7 +94,7 @@ export default function Documents() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes documents</h1>
+      <h1 className="text-2xl font-bold mb-8">Mes Documents</h1>
 
       <div className="flex justify-between items-center mb-6">
         <button
@@ -104,45 +105,39 @@ export default function Documents() {
         </button>
 
         <div className="flex gap-4 items-center">
-          <select
+          <Select
             value={propertyIdFilter || ""}
-            onChange={(e) =>
+            onValueChange={(val) =>
               setSearchParams((prev) => {
-                e.target.value
-                  ? prev.set("propertyId", e.target.value)
-                  : prev.delete("propertyId");
+                val ? prev.set("propertyId", val) : prev.delete("propertyId");
                 return prev;
               })
             }
-            className="border px-3 py-2 rounded text-sm"
+            placeholder="Filtrer par propriété"
           >
-            <option value="">Filtrer par propriété</option>
             {properties.map((p) => (
               <option key={p._id} value={p._id}>
                 {p.address} ({p.city})
               </option>
             ))}
-          </select>
+          </Select>
 
-          <select
+          <Select
             value={unitIdFilter || ""}
-            onChange={(e) =>
+            onValueChange={(val) =>
               setSearchParams((prev) => {
-                e.target.value
-                  ? prev.set("unitId", e.target.value)
-                  : prev.delete("unitId");
+                val ? prev.set("unitId", val) : prev.delete("unitId");
                 return prev;
               })
             }
-            className="border px-3 py-2 rounded text-sm"
+            placeholder="Filtrer par unité"
           >
-            <option value="">Filtrer par unité</option>
             {units.map((u) => (
               <option key={u._id} value={u._id}>
                 {u.label}
               </option>
             ))}
-          </select>
+          </Select>
 
           {(unitIdFilter || propertyIdFilter || documentId) && (
             <button
@@ -165,6 +160,7 @@ export default function Documents() {
             <li key={doc._id}>
               <DocumentCard
                 doc={doc}
+                canDelete={String(doc.uploaderId) === String(user._id)}
                 onDownload={(d) => downloadLeaseDocument(d, token)}
                 onDelete={(d) => {
                   setSelectedDocId(d._id);

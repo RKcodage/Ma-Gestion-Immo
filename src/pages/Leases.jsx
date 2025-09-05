@@ -6,6 +6,7 @@ import { fetchLeasesByRole, deleteLease } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
 import { MoreVertical } from "lucide-react";
+import Select from "@/components/components/ui/select";
 import LeaseCard from "@/components/cards/LeaseCard";
 import { toast } from "react-toastify";
 
@@ -74,6 +75,11 @@ export default function Leases() {
   // Confirm delete lease
   const confirmDelete = async () => {
     if (leaseToDelete) {
+      // UI guard: only owners can delete a lease
+      if (user?.role !== "Propriétaire") {
+        toast.error("Action non autorisée");
+        return;
+      }
       try {
         await deleteLease(leaseToDelete._id, token);
         toast.success("Bail supprimé avec succès");
@@ -88,45 +94,45 @@ export default function Leases() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes baux</h1>
+      <h1 className="text-2xl font-bold mb-8">
+        {user?.role === "Propriétaire" ? "Mes Baux" : "Mes Locations"}
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <select
+        <Select
           value={propertyIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("propertyId", e.target.value) : prev.delete("propertyId");
+              val ? prev.set("propertyId", val) : prev.delete("propertyId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par propriété"
         >
-          <option value="">Filtrer par propriété</option>
           {properties.map((prop) => (
             <option key={prop._id} value={prop._id}>
               {prop.address} ({prop.city})
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           value={unitIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("unitId", e.target.value) : prev.delete("unitId");
+              val ? prev.set("unitId", val) : prev.delete("unitId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par unité"
         >
-          <option value="">Filtrer par unité</option>
           {units.map((unit) => (
             <option key={unit._id} value={unit._id}>
               {unit.label}
             </option>
           ))}
-        </select>
+        </Select>
 
         {(leaseIdFilter || unitIdFilter || propertyIdFilter) && (
           <button
