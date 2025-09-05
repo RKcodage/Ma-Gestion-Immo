@@ -20,7 +20,7 @@ const Header = ({ className = "" }) => {
         {isAuthenticated ? (
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4"
+            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4 leading-none"
           >
             Revenir à mon espace
             <span className="w-6 h-6 flex items-center justify-center rounded-full border border-white">
@@ -30,7 +30,7 @@ const Header = ({ className = "" }) => {
         ) : (
           <NavLink
             to="/login"
-            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4"
+            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4 leading-none"
           >
             Se connecter
             <span className="w-6 h-6 flex items-center justify-center rounded-full border border-white">
