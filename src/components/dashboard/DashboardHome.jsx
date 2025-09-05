@@ -33,7 +33,11 @@ const DashboardHome = () => {
       {user.role === "Propriétaire" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Add property */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: add a new property */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-add-property"
+          >
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter une propriété
             </h3>
@@ -41,7 +45,11 @@ const DashboardHome = () => {
           </div>
 
           {/* Add Lease */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: add a new lease */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-add-lease"
+          >
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter un bail
             </h3>
@@ -49,7 +57,11 @@ const DashboardHome = () => {
           </div>
 
           {/* Add document */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: add a new document */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-add-document"
+          >
             <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
               <Plus className="text-primary stroke-[3]" />Ajouter un document
             </h3>
@@ -58,7 +70,11 @@ const DashboardHome = () => {
 
           {/* My properties */}
           <Link to="/dashboard/properties">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: properties listing */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-properties"
+            >
               <h3 className="text-lg font-semibold mb-2">Mes propriétés</h3>
               <p className="text-sm text-gray-600">Gérez vos biens immobiliers.</p>
             </div>
@@ -66,7 +82,11 @@ const DashboardHome = () => {
 
           {/* My leases */}
           <Link to="/dashboard/leases">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: leases entry (shared anchor name across roles) */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-leases"
+            >
               <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
               <p className="text-sm text-gray-600">Suivez vos contrats et leur situation.</p>
           </div>
@@ -74,14 +94,22 @@ const DashboardHome = () => {
           
           {/* Documents */}
           <Link to="/dashboard/documents">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: documents entry (shared anchor name across roles) */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-documents"
+            >
               <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
               <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
             </div>
           </Link>
           
           {/* Date payments calendar */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: calendar of rent payments */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-rent-calendar"
+          >
             <h3 className="text-lg font-semibold mb-2">📅 Calendrier des loyers</h3>
             {upcomingPayments.length === 0 ? (
               <p className="text-sm text-gray-600">Aucune échéance à venir</p>
@@ -111,7 +139,11 @@ const DashboardHome = () => {
           </div>
           
           {/* Leases payments historical */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: rent payments history */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-rent-history"
+          >
             <h3 className="text-lg font-semibold mb-2">📊 Historique des loyers</h3>
             {rentHistory.length === 0 ? (
               <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
@@ -147,7 +179,11 @@ const DashboardHome = () => {
           </div>
 
           {/* Documents templates */}
-          <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+          {/* Tour anchor: templates for common documents */}
+          <div
+            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+            data-tour="dashboard-doc-templates"
+          >
             <h3 className="text-lg font-semibold mb-2">Modèles de documents</h3>
             <ul className="space-y-1 text-sm text-primary">
               {documentTemplates.map((doc) => (
@@ -169,7 +205,11 @@ const DashboardHome = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Leases */}
           <Link to="/dashboard/leases">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: leases entry (shared anchor name across roles) */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-leases"
+            >
               <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
               <p className="text-sm text-gray-600">Consultez vos baux en cours.</p>
             </div>
@@ -177,7 +217,11 @@ const DashboardHome = () => {
           
           {/* Chat */}
           <Link to="/dashboard/chat">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: chat entry card (header icon is also covered) */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-chat-card"
+            >
               <h3 className="text-lg font-semibold mb-2">Contacter votre propriétaire</h3>
               <p className="text-sm text-gray-600">Posez vos questions directement.</p>
             </div>
@@ -185,7 +229,11 @@ const DashboardHome = () => {
 
           {/* Documents */}
           <Link to="/dashboard/documents">
-            <div className="bg-white p-6 rounded-lg shadow hover:shadow-md transition">
+            {/* Tour anchor: documents entry (shared anchor name across roles) */}
+            <div
+              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
+              data-tour="dashboard-documents"
+            >
               <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
               <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
             </div>
