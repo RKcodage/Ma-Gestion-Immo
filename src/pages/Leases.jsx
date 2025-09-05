@@ -94,7 +94,9 @@ export default function Leases() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes Locations</h1>
+      <h1 className="text-2xl font-bold mb-8">
+        {user?.role === "Propriétaire" ? "Mes Baux" : "Mes Locations"}
+      </h1>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
