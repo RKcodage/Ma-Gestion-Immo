@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useLocation } from "react-router-dom";
 
 const SITE =
-  import.meta.env.VITE_SITE_URL || import.meta.env.VITE_SOCKET_URL;
+  import.meta.env.VITE_SITE_URL;
 
 export default function SEO({
   title = "Ma Gestion Immo",
