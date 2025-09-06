@@ -4,7 +4,7 @@ import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
 import { fetchLeasesByRole } from "../../api/lease";
 import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare } from "lucide-react";
-import { documentTemplates } from "../../constants/documentTemplates"; 
+import { ownerTemplates, tenantTemplates } from "../../constants/documentTemplates"; 
 import DashboardTile from "./DashboardTile";
 import AddPropertyModal from "../modals/AddPropertyModal";
 import CreateLeaseModal from "../modals/CreateLeaseModal";
@@ -181,7 +181,7 @@ const DashboardHome = () => {
           {/* Documents templates */}
           <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
             <ul className="space-y-1 text-sm text-primary">
-              {documentTemplates.map((doc) => (
+              {ownerTemplates.map((doc) => (
                 <li key={doc.name}>
                   <a href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     {doc.name}
@@ -294,7 +294,7 @@ const DashboardHome = () => {
           {/* Documents templates (tenant view) */}
           <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
             <ul className="space-y-1 text-sm text-primary">
-              {documentTemplates.map((doc) => (
+              {tenantTemplates.map((doc) => (
                 <li key={doc.name}>
                   <a href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     {doc.name}
