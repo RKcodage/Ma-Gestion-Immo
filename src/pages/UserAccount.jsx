@@ -1,16 +1,23 @@
-// ... tes imports
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+// Stores
 import useAuthStore from "../stores/authStore";
+// Api
 import { fetchOwnerByUserId } from "../api/owner";
 import { fetchTenantByUserId } from "../api/tenant";
 import { fetchUserById, uploadAvatar } from "../api/user";
+// SEO
+import SEO from "../components/SEO/SEO";
+// Components
 import AccountUserInfos from "../components/account/AccountUserInfos";
 import AccountRoleInfos from "../components/account/AccountRoleInfos";
+import { ArrowLeft } from "lucide-react";
 
 const UserAccount = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const navigate = useNavigate();
   const fileInputRef = useRef();
   const [avatarError, setAvatarError] = useState(false);
 
@@ -34,7 +41,7 @@ const UserAccount = () => {
     enabled: !!user?._id,
   });
 
-  // Set form selon le rôle
+  // Set form depends on user role 
   useEffect(() => {
     if (user.role === "Propriétaire" && ownerData) {
       setForm({
@@ -90,8 +97,22 @@ const UserAccount = () => {
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-white shadow rounded">
-      <h2 className="text-2xl font-bold mb-4">Mon compte</h2>
+      {/* Page SEO */}
+      <SEO title="Ma Gestion Immo - Mon Compte" noIndex />
+      
+      {/* Page title with back arrow */}
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h2 className="text-2xl font-bold">Mon compte</h2>
+      </div>
 
+      {/* User infos */}
       <AccountUserInfos
         email={data?.email}
         avatarError={avatarError}
@@ -99,6 +120,7 @@ const UserAccount = () => {
         handleFileChange={handleFileChange}
       />
 
+      {/* User role infos */}
       <AccountRoleInfos form={form} setForm={setForm} />
     </div>
   );

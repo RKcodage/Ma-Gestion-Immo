@@ -1,34 +1,43 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import useAuthStore from "../stores/authStore";
-import { fetchLeasesByRole } from "../api/lease";
+import { fetchLeasesByRole, deleteLease } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
+import { MoreVertical, ArrowLeft } from "lucide-react";
+import Select from "@/components/components/ui/select";
+import LeaseCard from "@/components/cards/LeaseCard";
+import { toast } from "react-toastify";
+
 
 export default function Leases() {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [leaseToDelete, setLeaseToDelete] = useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [leaseToEdit, setLeaseToEdit] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
+  // Leases query
   const {
     data: leases = [],
-    isLoading: leasesLoading,
-    isError: leasesError,
   } = useQuery({
     queryKey: ["leases", user._id],
     queryFn: () => fetchLeasesByRole(token),
     enabled: !!user?._id && !!token,
   });
 
+  // Search params
   const unitIdFilter = searchParams.get("unitId");
   const propertyIdFilter = searchParams.get("propertyId");
+  const leaseIdFilter = searchParams.get("leaseId");
 
+  // Filters
   const properties = Array.from(
     new Set(leases.map((lease) => lease.unitId?.propertyId?._id))
   )
@@ -37,74 +46,102 @@ export default function Leases() {
     )
     .filter(Boolean);
 
-  const units = Array.from(
-    new Set(leases.map((lease) => lease.unitId?._id))
-  )
-    .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
-    .filter(Boolean);
-
-  const leaseIdFilter = searchParams.get("leaseId");
-
-  // Filters 
+    const units = Array.from(
+      new Set(
+        leases
+          .filter((lease) =>
+            propertyIdFilter
+              ? lease.unitId?.propertyId?._id === propertyIdFilter
+              : true
+          )
+          .map((lease) => lease.unitId?._id)
+      )
+    )
+      .map((id) => leases.find((lease) => lease.unitId?._id === id)?.unitId)
+      .filter(Boolean);
+    
   const filteredLeases = leases.filter((lease) => {
     const matchesLease = leaseIdFilter ? lease._id === leaseIdFilter : true;
     const matchesUnit = unitIdFilter ? lease.unitId?._id === unitIdFilter : true;
     const matchesProperty = propertyIdFilter ? lease.unitId?.propertyId?._id === propertyIdFilter : true;
     return matchesLease && matchesUnit && matchesProperty;
   });
-  
+
+  // Reset filters
   const handleResetFilters = () => {
     navigate("/dashboard/leases");
   };
 
-  const confirmDelete = () => {
+  // Confirm delete lease
+  const confirmDelete = async () => {
     if (leaseToDelete) {
-      console.log("Suppression du bail :", leaseToDelete._id);
-      setConfirmDeleteOpen(false);
+      // UI guard: only owners can delete a lease
+      if (user?.role !== "Propriétaire") {
+        toast.error("Action non autorisée");
+        return;
+      }
+      try {
+        await deleteLease(leaseToDelete._id, token);
+        toast.success("Bail supprimé avec succès");
+        setConfirmDeleteOpen(false);
+        setLeaseToDelete(null);
+        queryClient.invalidateQueries(["leases", user._id]); // Rafraîchir la liste
+      } catch (err) {
+        toast.error("Erreur : " + err.message);
+      }
     }
   };
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-6">Mes baux</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold">
+          {user?.role === "Propriétaire" ? "Mes Baux" : "Mes Locations"}
+        </h1>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <select
+        <Select
           value={propertyIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("propertyId", e.target.value) : prev.delete("propertyId");
+              val ? prev.set("propertyId", val) : prev.delete("propertyId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par propriété"
         >
-          <option value="">Filtrer par propriété</option>
           {properties.map((prop) => (
             <option key={prop._id} value={prop._id}>
               {prop.address} ({prop.city})
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           value={unitIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("unitId", e.target.value) : prev.delete("unitId");
+              val ? prev.set("unitId", val) : prev.delete("unitId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par unité"
         >
-          <option value="">Filtrer par unité</option>
           {units.map((unit) => (
             <option key={unit._id} value={unit._id}>
               {unit.label}
             </option>
           ))}
-        </select>
+        </Select>
 
         {(leaseIdFilter || unitIdFilter || propertyIdFilter) && (
           <button
@@ -116,44 +153,35 @@ export default function Leases() {
         )}
       </div>
 
-      {/* Liste des baux */}
+      {/* Leases list */}
       {filteredLeases.length === 0 ? (
         <p className="text-sm text-gray-500">Aucun bail trouvé.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {filteredLeases.map((lease) => (
-            <li key={lease._id} className="bg-white border rounded p-4 shadow-sm space-y-1 relative">
-              <p><strong>Adresse :</strong> {lease.unitId?.propertyId?.address || "-"} ({lease.unitId?.propertyId?.city || "-"})</p>
-              <p><strong>Unité :</strong> {lease.unitId?.label || "-"}</p>
-              <p><strong>Locataire :</strong> {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}</p>
-              <p><strong>Email :</strong> {lease.tenantId?.userId?.email}</p>
-              <p><strong>Durée :</strong> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
-              <p><strong>Loyer :</strong> {lease.rentAmount} €</p>
-              <p><strong>Charges :</strong> {lease.chargesAmount} €</p>
-
-              <div className="absolute bottom-4 right-4 flex gap-2">
-                <button
-                  className="text-sm text-white bg-primary px-3 py-1 rounded hover:bg-primary/90"
-                  onClick={() => setLeaseToEdit(lease)}
-                >
-                  Modifier
-                </button>
-                <button
-                  className="text-sm text-white bg-red-600 px-3 py-1 rounded hover:bg-red-700"
-                  onClick={() => {
-                    setLeaseToDelete(lease);
-                    setConfirmDeleteOpen(true);
-                  }}
-                >
-                  Supprimer
-                </button>
-              </div>
+            <li key={lease._id}>
+              <LeaseCard
+                lease={lease}
+                userRole={user.role}
+                onEdit={(l) => setLeaseToEdit(l)}
+                onDelete={(l) => {
+                  setLeaseToDelete(l);
+                  setConfirmDeleteOpen(true);
+                }}
+                onViewDocuments={(l) => {
+                  const leaseId = l._id;
+                  const unitId = l.unitId?._id;
+                  const propertyId = l.unitId?.propertyId?._id;
+                  navigate(
+                    `/dashboard/documents?leaseId=${leaseId}&unitId=${unitId}&propertyId=${propertyId}`
+                  );
+                }}
+              />
             </li>
           ))}
         </ul>
       )}
 
-      {/* Delete lease modal */}
       {confirmDeleteOpen && (
         <ConfirmModal
           title="Supprimer ce bail ?"
@@ -165,7 +193,6 @@ export default function Leases() {
         />
       )}
 
-      {/* Modal d’édition */}
       {leaseToEdit && (
         <UpdateLeaseModal
           open={!!leaseToEdit}
