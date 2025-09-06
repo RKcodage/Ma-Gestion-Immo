@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 // Components
 import Header from "../components/dashboard/Header";
 import Sidebar from "../components/dashboard/Sidebar";
-import SEO from "../components/SEO/Seo";
+import SEO from "../components/SEO/SEO";
 import DashboardTour from "../components/onboarding/DashboardTour";
 
 import useSidebarStore from "../stores/sidebarStore";
