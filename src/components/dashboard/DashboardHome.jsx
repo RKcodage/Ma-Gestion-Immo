@@ -1,13 +1,26 @@
 import useAuthStore from "../../stores/authStore";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
+import { fetchLeasesByRole } from "../../api/lease";
 import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare } from "lucide-react";
 import { documentTemplates } from "../../constants/documentTemplates"; 
 import DashboardTile from "./DashboardTile";
+import AddPropertyModal from "../modals/AddPropertyModal";
+import CreateLeaseModal from "../modals/CreateLeaseModal";
+import AddDocumentModal from "../modals/AddDocumentModal";
+import { fetchOwnerByUserId } from "../../api/owner";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+
+  // Owner query (for AddPropertyModal)
+  const { data: owner } = useQuery({
+    queryKey: ["owner", user?._id],
+    queryFn: () => fetchOwnerByUserId(user._id, token),
+    enabled: user?.role === "Propriétaire" && !!user?._id && !!token,
+  });
 
   // Upcoming payments by lease query
   const { data: upcomingPayments = [] } = useQuery({
@@ -24,7 +37,30 @@ const DashboardHome = () => {
     enabled: !!token,
   });
 
+  // Leases list for modals (documents and units)
+  const { data: leases = [] } = useQuery({
+    queryKey: ["leases", user?._id],
+    queryFn: () => fetchLeasesByRole(token),
+    enabled: !!token && !!user?._id,
+  });
+
+  // Derive properties and units from leases
+  const properties = Array.from(
+    new Set(leases.map((l) => l.unitId?.propertyId?._id))
+  )
+    .map((id) =>
+      leases.find((l) => l.unitId?.propertyId?._id === id)?.unitId?.propertyId
+    )
+    .filter(Boolean);
+
+  const units = Array.from(new Set(leases.map((l) => l.unitId?._id)))
+    .map((id) => leases.find((l) => l.unitId?._id === id)?.unitId)
+    .filter(Boolean);
+
   if (!user) return null;
+  const [addPropertyOpen, setAddPropertyOpen] = useState(false);
+  const [addLeaseOpen, setAddLeaseOpen] = useState(false);
+  const [addDocumentOpen, setAddDocumentOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -33,6 +69,7 @@ const DashboardHome = () => {
       </h2>
 
       {user.role === "Propriétaire" ? (
+        <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Add property */}
           <DashboardTile
@@ -40,6 +77,8 @@ const DashboardHome = () => {
             title="Ajouter une propriété"
             description="Créez un nouveau bien immobilier."
             icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddPropertyOpen(true)}
           />
 
           {/* Add Lease */}
@@ -48,6 +87,8 @@ const DashboardHome = () => {
             title="Ajouter un bail"
             description="Ajoutez un nouveau bail locatif."
             icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddLeaseOpen(true)}
           />
 
           {/* Add document */}
@@ -56,6 +97,8 @@ const DashboardHome = () => {
             title="Ajouter un document"
             description="Ajoutez un document lié à un bien."
             icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddDocumentOpen(true)}
           />
 
           {/* My properties */}
@@ -148,6 +191,27 @@ const DashboardHome = () => {
             </ul>
           </DashboardTile>
         </div>
+        <AddPropertyModal
+          open={addPropertyOpen}
+          onClose={() => setAddPropertyOpen(false)}
+          ownerId={owner?._id}
+        />
+        <CreateLeaseModal
+          open={addLeaseOpen}
+          onClose={() => setAddLeaseOpen(false)}
+          ownerId={owner?._id}
+          units={units}
+          properties={properties}
+          token={token}
+        />
+        <AddDocumentModal
+          open={addDocumentOpen}
+          onClose={() => setAddDocumentOpen(false)}
+          leases={leases}
+          units={units}
+          properties={properties}
+        />
+        </>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Leases */}
