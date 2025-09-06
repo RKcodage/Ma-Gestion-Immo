@@ -3,9 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
 import { fetchLeasesByRole } from "../../api/lease";
-import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare } from "lucide-react";
+import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare, Users as UsersIcon, Home as HomeIcon, DollarSign } from "lucide-react";
 import { ownerTemplates, tenantTemplates } from "../../constants/documentTemplates"; 
 import DashboardTile from "./DashboardTile";
+import KpiCard from "./KpiCard";
+import { fetchPropertiesByOwner } from "../../api/property";
+import { getUnitsWithLeaseCount } from "../../api/unit";
 import AddPropertyModal from "../modals/AddPropertyModal";
 import CreateLeaseModal from "../modals/CreateLeaseModal";
 import AddDocumentModal from "../modals/AddDocumentModal";
@@ -57,6 +60,24 @@ const DashboardHome = () => {
     .map((id) => leases.find((l) => l.unitId?._id === id)?.unitId)
     .filter(Boolean);
 
+  // Owner's properties and all units list (for occupancy KPI)
+  const { data: ownerProperties = [] } = useQuery({
+    queryKey: ["owner-properties", owner?._id],
+    queryFn: () => fetchPropertiesByOwner(owner._id, token),
+    enabled: user?.role === "Propriétaire" && !!owner?._id && !!token,
+  });
+
+  const { data: allUnits = [] } = useQuery({
+    queryKey: ["owner-all-units", owner?._id],
+    queryFn: async () => {
+      const lists = await Promise.all(
+        ownerProperties.map((p) => getUnitsWithLeaseCount(p._id, token))
+      );
+      return lists.flat();
+    },
+    enabled: user?.role === "Propriétaire" && ownerProperties.length > 0 && !!token,
+  });
+
   if (!user) return null;
   const [addPropertyOpen, setAddPropertyOpen] = useState(false);
   const [addLeaseOpen, setAddLeaseOpen] = useState(false);
@@ -70,6 +91,58 @@ const DashboardHome = () => {
 
       {user.role === "Propriétaire" ? (
         <>
+        {/* KPIs */}
+        {(() => {
+          const now = new Date();
+          const isActive = (lease) => {
+            const start = lease?.startDate ? new Date(lease.startDate) : null;
+            const end = lease?.endDate ? new Date(lease.endDate) : null;
+            if (!start) return false;
+            return now >= start && (!end || now <= end);
+          };
+
+          const monthlyRent = leases
+            .filter(isActive)
+            .reduce((sum, l) => sum + (Number(l.rentAmount) || 0), 0);
+          const fmtEUR = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v || 0);
+
+          const tenantIds = new Set(
+            leases
+              .filter(isActive)
+              .flatMap((l) => (Array.isArray(l.tenants) ? l.tenants : []).map((t) => String(t?.userId?._id || t?._id || "")))
+              .filter(Boolean)
+          );
+          const tenantsCount = tenantIds.size;
+
+          const activeUnitIds = new Set(leases.filter(isActive).map((l) => String(l.unitId?._id || "")));
+          const totalUnits = allUnits?.length || 0;
+          const occupiedUnits = totalUnits > 0 ? [...activeUnitIds].filter((id) => allUnits.some((u) => String(u._id) === id)).length : 0;
+          const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : null;
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KpiCard
+                icon={<DollarSign className="w-4 h-4 text-primary" />}
+                label="Loyer(s) du mois en cours"
+                value={fmtEUR(monthlyRent)}
+                tone="success"
+              />
+              <KpiCard
+                icon={<UsersIcon className="w-4 h-4 text-primary" />}
+                label="Nombre de locataires"
+                value={tenantsCount}
+                tone="info"
+              />
+              <KpiCard
+                icon={<HomeIcon className="w-4 h-4 text-primary" />}
+                label="Taux d’occupation"
+                value={occupancyRate !== null ? `${occupancyRate}%` : "—"}
+                hint={totalUnits ? `${occupiedUnits}/${totalUnits} unités occupées` : undefined}
+                tone="warning"
+              />
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Add property */}
           <DashboardTile
@@ -213,6 +286,59 @@ const DashboardHome = () => {
         />
         </>
       ) : (
+        <>
+        {(() => {
+          const now = new Date();
+          const isActive = (lease) => {
+            const start = lease?.startDate ? new Date(lease.startDate) : null;
+            const end = lease?.endDate ? new Date(lease.endDate) : null;
+            if (!start) return false;
+            return now >= start && (!end || now <= end);
+          };
+
+          const fmtEUR = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v || 0);
+
+          // 1) Loyers du mois en cours (baux actifs)
+          const tenantMonthlyRent = leases
+            .filter(isActive)
+            .reduce((sum, l) => sum + (Number(l.rentAmount) || 0), 0);
+
+          // 2) Nombre de propriétaires (baux actifs) – distinct owners
+          const ownerIds = new Set(
+            leases
+              .filter(isActive)
+              .map((l) => String(l.ownerId?._id || ""))
+              .filter(Boolean)
+          );
+          const ownersCount = ownerIds.size;
+
+          // 3) Prochaine date de fin de bail (future la plus proche)
+          const nextEnd = leases
+            .map((l) => (l.endDate ? new Date(l.endDate) : null))
+            .filter((d) => d && d >= now)
+            .sort((a, b) => a - b)[0] || null;
+          const nextEndLabel = nextEnd ? nextEnd.toLocaleDateString("fr-FR") : "—";
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KpiCard
+                icon={<DollarSign className="w-4 h-4 text-primary" />}
+                label="Loyer(s) du mois en cours"
+                value={fmtEUR(tenantMonthlyRent)}
+              />
+              <KpiCard
+                icon={<UsersIcon className="w-4 h-4 text-primary" />}
+                label="Propriétaire(s) (baux actifs)"
+                value={ownersCount}
+              />
+              <KpiCard
+                icon={<CalendarDays className="w-4 h-4 text-primary" />}
+                label="Fin du prochain bail"
+                value={nextEndLabel}
+              />
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Leases */}
           <DashboardTile
@@ -304,6 +430,7 @@ const DashboardHome = () => {
             </ul>
           </DashboardTile>
         </div>
+        </>
       )}
     </div>
   );
