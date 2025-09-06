@@ -5,7 +5,7 @@ import Difficulties from "../components/homepage/Difficulties";
 import Cta from "../components/homepage/Cta";
 import Testimonies from "../components/homepage/Testimonies";
 import Footer from "../components/homepage/Footer";
-import SEO from "../components/SEO/Seo";
+import SEO from "../components/SEO/SEO";
 
 
 const Home = () => {
