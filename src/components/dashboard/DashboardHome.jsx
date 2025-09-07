@@ -1,5 +1,6 @@
 import useAuthStore from "../../stores/authStore";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
 import { fetchLeasesByRole } from "../../api/lease";
@@ -17,6 +18,7 @@ import { fetchOwnerByUserId } from "../../api/owner";
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
+  const navigate = useNavigate();
 
   // Owner query (for AddPropertyModal)
   const { data: owner } = useQuery({
@@ -208,7 +210,16 @@ const DashboardHome = () => {
             ) : (
               <ul className="space-y-3 text-sm">
                 {upcomingPayments.map((lease) => (
-                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                  <li
+                    key={lease._id}
+                    onClick={() => navigate(`/dashboard/leases?leaseId=${lease._id}`)}
+                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") navigate(`/dashboard/leases?leaseId=${lease._id}`);
+                    }}
+                  >
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -230,7 +241,16 @@ const DashboardHome = () => {
             ) : (
               <ul className="space-y-3 text-sm">
                 {rentHistory.map((lease) => (
-                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                  <li
+                    key={lease._id}
+                    onClick={() => navigate(`/dashboard/leases?leaseId=${lease._id}`)}
+                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") navigate(`/dashboard/leases?leaseId=${lease._id}`);
+                    }}
+                  >
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -377,7 +397,16 @@ const DashboardHome = () => {
             ) : (
               <ul className="space-y-3 text-sm">
                 {upcomingPayments.map((lease) => (
-                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                  <li
+                    key={lease._id}
+                    onClick={() => navigate(`/dashboard/leases?leaseId=${lease._id}`)}
+                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") navigate(`/dashboard/leases?leaseId=${lease._id}`);
+                    }}
+                  >
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -399,7 +428,16 @@ const DashboardHome = () => {
             ) : (
               <ul className="space-y-3 text-sm">
                 {rentHistory.map((lease) => (
-                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                  <li
+                    key={lease._id}
+                    onClick={() => navigate(`/dashboard/leases?leaseId=${lease._id}`)}
+                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") navigate(`/dashboard/leases?leaseId=${lease._id}`);
+                    }}
+                  >
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
