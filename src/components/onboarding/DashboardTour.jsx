@@ -17,8 +17,6 @@ const DashboardTour = () => {
 
   const openSidebar = useSidebarStore((s) => s.openSidebar);
 
-  // Keep a controlled index to react to step changes (e.g., ensure sidebar is visible)
-  // We don't control the step index; let Joyride handle it internally.
 
   // Define steps using data-tour selectors added across the UI
   const steps = useMemo(
@@ -59,8 +57,45 @@ const DashboardTour = () => {
       {
         target: "[data-tour='avatar-button']",
         content:
-          "Gérez votre compte, accédez aux paramètres et déconnectez-vous depuis ce menu.",
+          "Gérez votre compte et déconnectez-vous depuis ce menu.",
         placement: "bottom",
+      },
+      // KPI cards (skipped automatically if not present)
+      {
+        target: "[data-tour='kpi-monthly-rent']",
+        content:
+          "Total des loyers du mois en cours.",
+        placement: "top",
+      },
+      {
+        target: "[data-tour='kpi-tenants-active']",
+        content:
+          "Nombre de locataires actifs liés à vos baux en cours.",
+        placement: "top",
+      },
+      {
+        target: "[data-tour='kpi-occupancy']",
+        content:
+          "Taux d’occupation de vos unités (occupées / totales).",
+        placement: "top",
+      },
+      {
+        target: "[data-tour='kpi-tenant-monthly']",
+        content:
+          "Montant cumulé de vos loyers du mois en cours.",
+        placement: "top",
+      },
+      {
+        target: "[data-tour='kpi-owners-active']",
+        content:
+          "Nombre de propriétaires auxquels vous êtes rattaché pour vos locations en cours.",
+        placement: "top",
+      },
+      {
+        target: "[data-tour='kpi-next-end']",
+        content:
+          "Prochaine date de fin parmi vos locations en cours.",
+        placement: "top",
       },
       // Dashboard tiles — iterate left-to-right per row
       // Owner (row 1): add property -> add lease -> add document
@@ -132,7 +167,6 @@ const DashboardTour = () => {
       start();
     }
     // Do not include `start` to avoid re-trigger; we only want to check values
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSeen, run]);
 
   const handleCallback = (data) => {
