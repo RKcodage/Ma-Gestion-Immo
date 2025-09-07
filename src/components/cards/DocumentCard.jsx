@@ -3,6 +3,7 @@ import {
   FileText, MapPin, Tag, Users, CalendarDays,
   Download, Trash2, Lock
 } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/components/ui/tooltip";
 
 function formatDate(value) {
   const d = new Date(value);
@@ -23,6 +24,8 @@ export default function DocumentCard({
   onDownload,
   onDelete,
   className = "",
+  // Only show delete when allowed
+  canDelete = true,
 }) {
   const ext = (doc?.name?.split(".").pop() || "").toLowerCase();
   const typeLabel = (doc?.type || ext || "Fichier").toUpperCase();
@@ -140,16 +143,38 @@ export default function DocumentCard({
           <span className="hidden sm:inline">Télécharger</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => onDelete?.(doc)}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
-          title="Supprimer"
-          aria-label="Supprimer"
-        >
-          <Trash2 className="w-4 h-4" />
-          <span className="hidden sm:inline">Supprimer</span>
-        </button>
+        {canDelete ? (
+          <button
+            type="button"
+            onClick={() => onDelete?.(doc)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
+            title="Supprimer"
+            aria-label="Supprimer"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Supprimer</span>
+          </button>
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-disabled="true"
+                  disabled
+                  // Disabled style to signal non-actionable state
+                  className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-md border border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Supprimer</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Seul l'utilisateur ayant ajouté le document peut le supprimer
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </div>
     </div>
   );

@@ -1,28 +1,87 @@
 import useAuthStore from "../../stores/authStore";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
-import { Plus } from "lucide-react";
-import { documentTemplates } from "../../constants/documentTemplates"; 
-import { Link } from "react-router-dom";
+import { fetchLeasesByRole } from "../../api/lease";
+import { Plus, Building2, FileSignature, Files, CalendarClock, CalendarDays, History, ScrollText, KeyRound, MessageSquare, Users as UsersIcon, Home as HomeIcon, DollarSign } from "lucide-react";
+import { ownerTemplates, tenantTemplates } from "../../constants/documentTemplates"; 
+import DashboardTile from "./DashboardTile";
+import KpiCard from "./KpiCard";
+import { fetchPropertiesByOwner } from "../../api/property";
+import { getUnitsWithLeaseCount } from "../../api/unit";
+import AddPropertyModal from "../modals/AddPropertyModal";
+import CreateLeaseModal from "../modals/CreateLeaseModal";
+import AddDocumentModal from "../modals/AddDocumentModal";
+import { fetchOwnerByUserId } from "../../api/owner";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
 
+  // Owner query (for AddPropertyModal)
+  const { data: owner } = useQuery({
+    queryKey: ["owner", user?._id],
+    queryFn: () => fetchOwnerByUserId(user._id, token),
+    enabled: user?.role === "Propriétaire" && !!user?._id && !!token,
+  });
+
   // Upcoming payments by lease query
   const { data: upcomingPayments = [] } = useQuery({
     queryKey: ["upcoming-payments"],
     queryFn: () => fetchUpcomingPayments(token),
-    enabled: user?.role === "Propriétaire" && !!token,
+    // Enable for both owners and tenants
+    enabled: !!token,
   });
 
   const { data: rentHistory = [] } = useQuery({
     queryKey: ["payments-historic"],
     queryFn: () => fetchPaymentsHistoric(token),
-    enabled: user?.role === "Propriétaire" && !!token,
+    // Enable for both owners and tenants
+    enabled: !!token,
+  });
+
+  // Leases list for modals (documents and units)
+  const { data: leases = [] } = useQuery({
+    queryKey: ["leases", user?._id],
+    queryFn: () => fetchLeasesByRole(token),
+    enabled: !!token && !!user?._id,
+  });
+
+  // Derive properties and units from leases
+  const properties = Array.from(
+    new Set(leases.map((l) => l.unitId?.propertyId?._id))
+  )
+    .map((id) =>
+      leases.find((l) => l.unitId?.propertyId?._id === id)?.unitId?.propertyId
+    )
+    .filter(Boolean);
+
+  const units = Array.from(new Set(leases.map((l) => l.unitId?._id)))
+    .map((id) => leases.find((l) => l.unitId?._id === id)?.unitId)
+    .filter(Boolean);
+
+  // Owner's properties and all units list (for occupancy KPI)
+  const { data: ownerProperties = [] } = useQuery({
+    queryKey: ["owner-properties", owner?._id],
+    queryFn: () => fetchPropertiesByOwner(owner._id, token),
+    enabled: user?.role === "Propriétaire" && !!owner?._id && !!token,
+  });
+
+  const { data: allUnits = [] } = useQuery({
+    queryKey: ["owner-all-units", owner?._id],
+    queryFn: async () => {
+      const lists = await Promise.all(
+        ownerProperties.map((p) => getUnitsWithLeaseCount(p._id, token))
+      );
+      return lists.flat();
+    },
+    enabled: user?.role === "Propriétaire" && ownerProperties.length > 0 && !!token,
   });
 
   if (!user) return null;
+  const [addPropertyOpen, setAddPropertyOpen] = useState(false);
+  const [addLeaseOpen, setAddLeaseOpen] = useState(false);
+  const [addDocumentOpen, setAddDocumentOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -31,103 +90,129 @@ const DashboardHome = () => {
       </h2>
 
       {user.role === "Propriétaire" ? (
+        <>
+        {/* KPIs */}
+        {(() => {
+          const now = new Date();
+          const isActive = (lease) => {
+            const start = lease?.startDate ? new Date(lease.startDate) : null;
+            const end = lease?.endDate ? new Date(lease.endDate) : null;
+            if (!start) return false;
+            return now >= start && (!end || now <= end);
+          };
+
+          const monthlyRent = leases
+            .filter(isActive)
+            .reduce((sum, l) => sum + (Number(l.rentAmount) || 0), 0);
+          const fmtEUR = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v || 0);
+
+          const tenantIds = new Set(
+            leases
+              .filter(isActive)
+              .flatMap((l) => (Array.isArray(l.tenants) ? l.tenants : []).map((t) => String(t?.userId?._id || t?._id || "")))
+              .filter(Boolean)
+          );
+          const tenantsCount = tenantIds.size;
+
+          const activeUnitIds = new Set(leases.filter(isActive).map((l) => String(l.unitId?._id || "")));
+          const totalUnits = allUnits?.length || 0;
+          const occupiedUnits = totalUnits > 0 ? [...activeUnitIds].filter((id) => allUnits.some((u) => String(u._id) === id)).length : 0;
+          const occupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : null;
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KpiCard
+                icon={<DollarSign className="w-4 h-4 text-primary" />}
+                label="Loyer(s) du mois en cours"
+                value={fmtEUR(monthlyRent)}
+                dataTour="kpi-monthly-rent"
+              />
+              <KpiCard
+                icon={<UsersIcon className="w-4 h-4 text-primary" />}
+                label="Locataire(s) actifs"
+                value={tenantsCount}
+                dataTour="kpi-tenants-active"
+              />
+              <KpiCard
+                icon={<HomeIcon className="w-4 h-4 text-primary" />}
+                label="Taux d’occupation"
+                value={occupancyRate !== null ? `${occupancyRate}%` : "—"}
+                hint={totalUnits ? `${occupiedUnits}/${totalUnits} unités occupées` : undefined}
+                dataTour="kpi-occupancy"
+              />
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Add property */}
-          {/* Tour anchor: add a new property */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-add-property"
-          >
-            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
-              <Plus className="text-primary stroke-[3]" />Ajouter une propriété
-            </h3>
-            <p className="text-sm text-gray-600">Créez un nouveau bien immobilier.</p>
-          </div>
+          <DashboardTile
+            dataTour="dashboard-add-property"
+            title="Ajouter une propriété"
+            description="Créez un nouveau bien immobilier."
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddPropertyOpen(true)}
+          />
 
           {/* Add Lease */}
-          {/* Tour anchor: add a new lease */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-add-lease"
-          >
-            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
-              <Plus className="text-primary stroke-[3]" />Ajouter un bail
-            </h3>
-            <p className="text-sm text-gray-600">Ajoutez un nouveau bail locatif.</p>
-          </div>
+          <DashboardTile
+            dataTour="dashboard-add-lease"
+            title="Ajouter un bail"
+            description="Ajoutez un nouveau bail locatif."
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddLeaseOpen(true)}
+          />
 
           {/* Add document */}
-          {/* Tour anchor: add a new document */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-add-document"
-          >
-            <h3 className="text-lg font-semibold mb-1 flex items-center gap-2">
-              <Plus className="text-primary stroke-[3]" />Ajouter un document
-            </h3>
-            <p className="text-sm text-gray-600">Ajoutez un document lié à un bien.</p>
-          </div>
+          <DashboardTile
+            dataTour="dashboard-add-document"
+            title="Ajouter un document"
+            description="Ajoutez un document lié à un bien."
+            icon={<Plus className="w-5 h-5 text-primary stroke-[3]" />}
+            className="cursor-pointer"
+            onClick={() => setAddDocumentOpen(true)}
+          />
 
           {/* My properties */}
-          <Link to="/dashboard/properties">
-            {/* Tour anchor: properties listing */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-properties"
-            >
-              <h3 className="text-lg font-semibold mb-2">Mes propriétés</h3>
-              <p className="text-sm text-gray-600">Gérez vos biens immobiliers.</p>
-            </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/properties"
+            dataTour="dashboard-properties"
+            title="Mes propriétés"
+            description="Gérez vos biens immobiliers."
+            icon={<Building2 className="w-5 h-5 text-primary" />}
+          />
 
           {/* My leases */}
-          <Link to="/dashboard/leases">
-            {/* Tour anchor: leases entry (shared anchor name across roles) */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-leases"
-            >
-              <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
-              <p className="text-sm text-gray-600">Suivez vos contrats et leur situation.</p>
-          </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/leases"
+            dataTour="dashboard-leases"
+            title="Mes baux"
+            description="Suivez vos contrats et leur situation."
+            icon={<FileSignature className="w-5 h-5 text-primary" />}
+          />
           
           {/* Documents */}
-          <Link to="/dashboard/documents">
-            {/* Tour anchor: documents entry (shared anchor name across roles) */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-documents"
-            >
-              <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
-              <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
-            </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/documents"
+            dataTour="dashboard-documents"
+            title="Mes documents"
+            description="Téléchargez ou visualisez vos fichiers."
+            icon={<Files className="w-5 h-5 text-primary" />}
+          />
           
           {/* Date payments calendar */}
-          {/* Tour anchor: calendar of rent payments */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-rent-calendar"
-          >
-            <h3 className="text-lg font-semibold mb-2">📅 Calendrier des loyers</h3>
+          <DashboardTile dataTour="dashboard-rent-calendar" title="Calendrier des loyers" icon={<CalendarDays className="w-5 h-5 text-primary" />}>
             {upcomingPayments.length === 0 ? (
               <p className="text-sm text-gray-600">Aucune échéance à venir</p>
             ) : (
               <ul className="space-y-3 text-sm">
                 {upcomingPayments.map((lease) => (
-                  <li
-                    key={lease._id}
-                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition"
-                  >
-                    <div className="text-primary font-medium text-sm">
-                      {lease.propertyAddress}
-                    </div>
-                    <div className="text-gray-700 text-sm italic">
-                      {lease.unitLabel}
-                    </div>
+                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                    <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
+                    <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      🕓 Prochaine échéance :{" "}
+                      🕓 Prochaine échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
                       </span>
@@ -136,109 +221,215 @@ const DashboardHome = () => {
                 ))}
               </ul>
             )}
-          </div>
+          </DashboardTile>
           
           {/* Leases payments historical */}
-          {/* Tour anchor: rent payments history */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-rent-history"
-          >
-            <h3 className="text-lg font-semibold mb-2">📊 Historique des loyers</h3>
+          <DashboardTile dataTour="dashboard-rent-history" title="Historique des loyers" icon={<History className="w-5 h-5 text-primary" />}>
             {rentHistory.length === 0 ? (
               <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
             ) : (
               <ul className="space-y-3 text-sm">
                 {rentHistory.map((lease) => (
-                  <li
-                    key={lease._id}
-                    className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition"
-                  >
-                    <div className="text-primary font-medium text-sm">
-                      {lease.propertyAddress}
-                    </div>
-                    <div className="text-gray-700 text-sm italic">
-                      {lease.unitLabel}
-                    </div>
+                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                    <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
+                    <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      💶 Dernière échéance :{" "}
+                      💶 Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
-                      {lease.lastPaymentDate
-                        ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })
-                        : "Date inconnue"}
+                        {lease.lastPaymentDate
+                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })
+                          : "Date inconnue"}
                       </span>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </DashboardTile>
 
           {/* Documents templates */}
-          {/* Tour anchor: templates for common documents */}
-          <div
-            className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-            data-tour="dashboard-doc-templates"
-          >
-            <h3 className="text-lg font-semibold mb-2">Modèles de documents</h3>
+          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
             <ul className="space-y-1 text-sm text-primary">
-              {documentTemplates.map((doc) => (
+              {ownerTemplates.map((doc) => (
                 <li key={doc.name}>
-                  <a
-                    href={doc.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline"
-                  >
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     {doc.name}
                   </a>
                 </li>
               ))}
             </ul>
-          </div>
+          </DashboardTile>
         </div>
+        <AddPropertyModal
+          open={addPropertyOpen}
+          onClose={() => setAddPropertyOpen(false)}
+          ownerId={owner?._id}
+        />
+        <CreateLeaseModal
+          open={addLeaseOpen}
+          onClose={() => setAddLeaseOpen(false)}
+          ownerId={owner?._id}
+          units={units}
+          properties={properties}
+          token={token}
+        />
+        <AddDocumentModal
+          open={addDocumentOpen}
+          onClose={() => setAddDocumentOpen(false)}
+          leases={leases}
+          units={units}
+          properties={properties}
+        />
+        </>
       ) : (
+        <>
+        {(() => {
+          const now = new Date();
+          const isActive = (lease) => {
+            const start = lease?.startDate ? new Date(lease.startDate) : null;
+            const end = lease?.endDate ? new Date(lease.endDate) : null;
+            if (!start) return false;
+            return now >= start && (!end || now <= end);
+          };
+
+          const fmtEUR = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v || 0);
+
+          // Rent of current month (active leases)
+          const tenantMonthlyRent = leases
+            .filter(isActive)
+            .reduce((sum, l) => sum + (Number(l.rentAmount) || 0), 0);
+
+          // Number of owners (active leases)
+          const ownerIds = new Set(
+            leases
+              .filter(isActive)
+              .map((l) => String(l.ownerId?._id || ""))
+              .filter(Boolean)
+          );
+          const ownersCount = ownerIds.size;
+
+          // Next lease end date 
+          const nextEnd = leases
+            .map((l) => (l.endDate ? new Date(l.endDate) : null))
+            .filter((d) => d && d >= now)
+            .sort((a, b) => a - b)[0] || null;
+          const nextEndLabel = nextEnd ? nextEnd.toLocaleDateString("fr-FR") : "—";
+
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <KpiCard
+                icon={<DollarSign className="w-4 h-4 text-primary" />}
+                label="Loyer(s) du mois en cours"
+                value={fmtEUR(tenantMonthlyRent)}
+                dataTour="kpi-tenant-monthly"
+              />
+              <KpiCard
+                icon={<UsersIcon className="w-4 h-4 text-primary" />}
+                label="Propriétaire(s) actifs"
+                value={ownersCount}
+                dataTour="kpi-owners-active"
+              />
+              <KpiCard
+                icon={<CalendarClock className="w-4 h-4 text-primary" />}
+                label="Fin du prochain bail"
+                value={nextEndLabel}
+                dataTour="kpi-next-end"
+              />
+            </div>
+          );
+        })()}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Leases */}
-          <Link to="/dashboard/leases">
-            {/* Tour anchor: leases entry (shared anchor name across roles) */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-leases"
-            >
-              <h3 className="text-lg font-semibold mb-2">Mes baux</h3>
-              <p className="text-sm text-gray-600">Consultez vos baux en cours.</p>
-            </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/leases"
+            dataTour="dashboard-leases"
+            title="Mes Locations"
+            description="Accédez aux détails de vos locations: contrat, loyers, documents."
+            icon={<KeyRound className="w-5 h-5 text-primary" />}
+          />
           
           {/* Chat */}
-          <Link to="/dashboard/chat">
-            {/* Tour anchor: chat entry card (header icon is also covered) */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-chat-card"
-            >
-              <h3 className="text-lg font-semibold mb-2">Contacter votre propriétaire</h3>
-              <p className="text-sm text-gray-600">Posez vos questions directement.</p>
-            </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/chat"
+            dataTour="dashboard-chat-card"
+            title="Contacter votre propriétaire"
+            description="Posez vos questions directement à votre ou vos bailleurs."
+            icon={<MessageSquare className="w-5 h-5 text-primary" />}
+          />
 
           {/* Documents */}
-          <Link to="/dashboard/documents">
-            {/* Tour anchor: documents entry (shared anchor name across roles) */}
-            <div
-              className="bg-white p-6 rounded-lg shadow hover:shadow-md transition"
-              data-tour="dashboard-documents"
-            >
-              <h3 className="text-lg font-semibold mb-2">Mes documents</h3>
-              <p className="text-sm text-gray-600">Téléchargez ou visualisez vos fichiers.</p>
-            </div>
-          </Link>
+          <DashboardTile
+            to="/dashboard/documents"
+            dataTour="dashboard-documents"
+            title="Mes documents"
+            description="Accédez à vos documents: bail, quittances, justificatifs etc."
+            icon={<Files className="w-5 h-5 text-primary" />}
+          />
+
+          {/* Date payments calendar (tenant view) */}
+          <DashboardTile dataTour="dashboard-rent-calendar" title="Calendrier des loyers" icon={<CalendarDays className="w-5 h-5 text-primary" />}>
+            {upcomingPayments.length === 0 ? (
+              <p className="text-sm text-gray-600">Aucune échéance à venir</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {upcomingPayments.map((lease) => (
+                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                    <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
+                    <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      🕓 Prochaine échéance : {" "}
+                      <span className="font-semibold text-gray-800">
+                        {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </DashboardTile>
+
+          {/* Leases payments historical (tenant view) */}
+          <DashboardTile dataTour="dashboard-rent-history" title="Historique des loyers" icon={<History className="w-5 h-5 text-primary" />}>
+            {rentHistory.length === 0 ? (
+              <p className="text-sm text-gray-600">Aucun loyer perçu récemment</p>
+            ) : (
+              <ul className="space-y-3 text-sm">
+                {rentHistory.map((lease) => (
+                  <li key={lease._id} className="border rounded p-3 bg-gray-50 hover:bg-gray-100 transition">
+                    <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
+                    <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      💶 Dernière échéance : {" "}
+                      <span className="font-semibold text-gray-800">
+                        {lease.lastPaymentDate
+                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")
+                          : "Date inconnue"}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </DashboardTile>
+
+          {/* Documents templates (tenant view) */}
+          <DashboardTile dataTour="dashboard-doc-templates" title="Modèles de documents" icon={<ScrollText className="w-5 h-5 text-primary" />}>
+            <ul className="space-y-1 text-sm text-primary">
+              {tenantTemplates.map((doc) => (
+                <li key={doc.name}>
+                  <a href={doc.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    {doc.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </DashboardTile>
         </div>
+        </>
       )}
     </div>
   );
