@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { fetchUpcomingPayments, fetchPaymentsHistoric } from "../../api/lease";
 import { fetchLeasesByRole } from "../../api/lease";
-import { Plus, Building2, FileSignature, Files, CalendarDays, History, ScrollText, KeyRound, MessageSquare, Users as UsersIcon, Home as HomeIcon, DollarSign } from "lucide-react";
+import { Plus, Building2, FileSignature, Files, CalendarClock, CalendarDays, History, ScrollText, KeyRound, MessageSquare, Users as UsersIcon, Home as HomeIcon, DollarSign } from "lucide-react";
 import { ownerTemplates, tenantTemplates } from "../../constants/documentTemplates"; 
 import DashboardTile from "./DashboardTile";
 import KpiCard from "./KpiCard";
@@ -125,20 +125,20 @@ const DashboardHome = () => {
                 icon={<DollarSign className="w-4 h-4 text-primary" />}
                 label="Loyer(s) du mois en cours"
                 value={fmtEUR(monthlyRent)}
-                tone="success"
+                dataTour="kpi-monthly-rent"
               />
               <KpiCard
                 icon={<UsersIcon className="w-4 h-4 text-primary" />}
-                label="Nombre de locataires"
+                label="Locataire(s) actifs"
                 value={tenantsCount}
-                tone="info"
+                dataTour="kpi-tenants-active"
               />
               <KpiCard
                 icon={<HomeIcon className="w-4 h-4 text-primary" />}
                 label="Taux d’occupation"
                 value={occupancyRate !== null ? `${occupancyRate}%` : "—"}
                 hint={totalUnits ? `${occupiedUnits}/${totalUnits} unités occupées` : undefined}
-                tone="warning"
+                dataTour="kpi-occupancy"
               />
             </div>
           );
@@ -298,12 +298,12 @@ const DashboardHome = () => {
 
           const fmtEUR = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v || 0);
 
-          // 1) Loyers du mois en cours (baux actifs)
+          // Rent of current month (active leases)
           const tenantMonthlyRent = leases
             .filter(isActive)
             .reduce((sum, l) => sum + (Number(l.rentAmount) || 0), 0);
 
-          // 2) Nombre de propriétaires (baux actifs) – distinct owners
+          // Number of owners (active leases)
           const ownerIds = new Set(
             leases
               .filter(isActive)
@@ -312,7 +312,7 @@ const DashboardHome = () => {
           );
           const ownersCount = ownerIds.size;
 
-          // 3) Prochaine date de fin de bail (future la plus proche)
+          // Next lease end date 
           const nextEnd = leases
             .map((l) => (l.endDate ? new Date(l.endDate) : null))
             .filter((d) => d && d >= now)
@@ -325,16 +325,19 @@ const DashboardHome = () => {
                 icon={<DollarSign className="w-4 h-4 text-primary" />}
                 label="Loyer(s) du mois en cours"
                 value={fmtEUR(tenantMonthlyRent)}
+                dataTour="kpi-tenant-monthly"
               />
               <KpiCard
                 icon={<UsersIcon className="w-4 h-4 text-primary" />}
-                label="Propriétaire(s) (baux actifs)"
+                label="Propriétaire(s) actifs"
                 value={ownersCount}
+                dataTour="kpi-owners-active"
               />
               <KpiCard
-                icon={<CalendarDays className="w-4 h-4 text-primary" />}
+                icon={<CalendarClock className="w-4 h-4 text-primary" />}
                 label="Fin du prochain bail"
                 value={nextEndLabel}
+                dataTour="kpi-next-end"
               />
             </div>
           );
@@ -403,11 +406,7 @@ const DashboardHome = () => {
                       💶 Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {lease.lastPaymentDate
-                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
+                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")
                           : "Date inconnue"}
                       </span>
                     </div>
