@@ -5,7 +5,9 @@ import useAuthStore from "../stores/authStore";
 import { fetchLeasesByRole, deleteLease } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, ArrowLeft } from "lucide-react";
+import Select from "@/components/components/ui/select";
+import LeaseCard from "@/components/cards/LeaseCard";
 import { toast } from "react-toastify";
 
 
@@ -73,6 +75,11 @@ export default function Leases() {
   // Confirm delete lease
   const confirmDelete = async () => {
     if (leaseToDelete) {
+      // UI guard: only owners can delete a lease
+      if (user?.role !== "Propriétaire") {
+        toast.error("Action non autorisée");
+        return;
+      }
       try {
         await deleteLease(leaseToDelete._id, token);
         toast.success("Bail supprimé avec succès");
@@ -87,45 +94,54 @@ export default function Leases() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-6">Mes baux</h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold">
+          {user?.role === "Propriétaire" ? "Mes Baux" : "Mes Locations"}
+        </h1>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <select
+        <Select
           value={propertyIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("propertyId", e.target.value) : prev.delete("propertyId");
+              val ? prev.set("propertyId", val) : prev.delete("propertyId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par propriété"
         >
-          <option value="">Filtrer par propriété</option>
           {properties.map((prop) => (
             <option key={prop._id} value={prop._id}>
               {prop.address} ({prop.city})
             </option>
           ))}
-        </select>
+        </Select>
 
-        <select
+        <Select
           value={unitIdFilter || ""}
-          onChange={(e) =>
+          onValueChange={(val) =>
             setSearchParams((prev) => {
-              e.target.value ? prev.set("unitId", e.target.value) : prev.delete("unitId");
+              val ? prev.set("unitId", val) : prev.delete("unitId");
               return prev;
             })
           }
-          className="border px-3 py-2 rounded text-sm"
+          placeholder="Filtrer par unité"
         >
-          <option value="">Filtrer par unité</option>
           {units.map((unit) => (
             <option key={unit._id} value={unit._id}>
               {unit.label}
             </option>
           ))}
-        </select>
+        </Select>
 
         {(leaseIdFilter || unitIdFilter || propertyIdFilter) && (
           <button
@@ -141,89 +157,26 @@ export default function Leases() {
       {filteredLeases.length === 0 ? (
         <p className="text-sm text-gray-500">Aucun bail trouvé.</p>
       ) : (
-        <ul className="space-y-4">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {filteredLeases.map((lease) => (
-            <li
-              key={lease._id}
-              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition relative"
-            >
-              <div className="space-y-1 text-sm text-gray-700">
-                <p><span className="font-semibold text-gray-900">📍 Adresse :</span> {lease.unitId?.propertyId?.address || "-"} ({lease.unitId?.propertyId?.city || "-"})</p>
-                <p><span className="font-semibold text-gray-900">🏷️ Unité :</span> {lease.unitId?.label || "-"}</p>
-                {user.role === "Locataire" ? (
-                  <>
-                    <p>
-                      <span className="font-semibold text-gray-900">👤 Propriétaire :</span>{" "}
-                      {lease.ownerId?.userId?.profile?.firstName} {lease.ownerId?.userId?.profile?.lastName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
-                      {lease.ownerId?.userId?.email}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p>
-                      <span className="font-semibold text-gray-900">👤 Locataire :</span>{" "}
-                      {lease.tenantId?.userId?.profile?.firstName} {lease.tenantId?.userId?.profile?.lastName}
-                    </p>
-                    <p>
-                      <span className="font-semibold text-gray-900">📧 Email :</span>{" "}
-                      {lease.tenantId?.userId?.email}
-                    </p>
-                  </>
-                )}
-                <p><span className="font-semibold text-gray-900">📅 Durée :</span> {lease.startDate?.slice(0, 10)} → {lease.endDate?.slice(0, 10) || "indéfinie"}</p>
-                <p><span className="font-semibold text-gray-900">💰 Loyer :</span> {lease.rentAmount} €</p>
-                <p><span className="font-semibold text-gray-900">📆 Paiement :</span> {lease.paymentDate} du mois</p>
-                <p><span className="font-semibold text-gray-900">💸 Charges :</span> {lease.chargesAmount} €</p>
-              </div>
-
-              {/* Menu */}
-              <div className="absolute top-4 right-4">
-                <button
-                  onClick={() => setOpenMenuId(openMenuId === lease._id ? null : lease._id)}
-                  className="text-gray-600 hover:text-gray-800"
-                >
-                  <MoreVertical />
-                </button>
-
-                {openMenuId === lease._id && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-10">
-                    <button
-                      className="w-full text-left text-sm px-4 py-2 hover:bg-gray-100"
-                      onClick={() => {
-                        setLeaseToEdit(lease);
-                        setOpenMenuId(null);
-                      }}
-                    >
-                      Modifier
-                    </button>
-                    <button
-                      className="w-full text-left text-sm px-4 py-2 text-red-600 hover:bg-gray-100"
-                      onClick={() => {
-                        setLeaseToDelete(lease);
-                        setConfirmDeleteOpen(true);
-                        setOpenMenuId(null);
-                      }}
-                    >
-                      Supprimer
-                    </button>
-                    <button
-                      className="w-full text-left text-sm px-4 py-2 hover:bg-gray-100"
-                      onClick={() => {
-                        const leaseId = lease._id;
-                        const unitId = lease.unitId?._id;
-                        const propertyId = lease.unitId?.propertyId?._id;
-                        navigate(`/dashboard/documents?leaseId=${leaseId}&unitId=${unitId}&propertyId=${propertyId}`);
-                        setOpenMenuId(null);
-                      }}                      
-                    >
-                      Voir les documents
-                    </button>
-                  </div>
-                )}
-              </div>
+            <li key={lease._id}>
+              <LeaseCard
+                lease={lease}
+                userRole={user.role}
+                onEdit={(l) => setLeaseToEdit(l)}
+                onDelete={(l) => {
+                  setLeaseToDelete(l);
+                  setConfirmDeleteOpen(true);
+                }}
+                onViewDocuments={(l) => {
+                  const leaseId = l._id;
+                  const unitId = l.unitId?._id;
+                  const propertyId = l.unitId?.propertyId?._id;
+                  navigate(
+                    `/dashboard/documents?leaseId=${leaseId}&unitId=${unitId}&propertyId=${propertyId}`
+                  );
+                }}
+              />
             </li>
           ))}
         </ul>

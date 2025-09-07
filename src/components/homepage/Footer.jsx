@@ -8,9 +8,9 @@ const Footer = () => {
       <footer className="bg-primary text-gray-300 py-12 px-6 md:px-16">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-12">
           {/* App name */}
-          <div>
+          <div className="text-center">
             <h3 className="text-2xl font-bold text-white mb-4">Ma Gestion Immo</h3>
-            <p className="text-sm">
+            <p className="text-sm max-w-60 m-auto">
               Une plateforme complète pour simplifier la relation entre propriétaires et locataires.
             </p>
           </div>
@@ -20,7 +20,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4 text-white">Navigation</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="hover:underline">Accueil</Link></li>
-              <li><Link to="/#features" className="hover:underline">Fonctionnalités</Link></li>
+              <li><a href="#features" className="hover:underline">Fonctionnalités</a></li>
               <li><Link to="/signup" className="hover:underline">S'inscrire</Link></li>
               <li><Link to="/login" className="hover:underline">Se connecter</Link></li>
             </ul>
@@ -31,6 +31,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4 text-white">Informations</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/legal-mentions" className="hover:underline">Mentions légales</Link></li>
+              <li><Link to="/privacy-policy" className="hover:underline">Politique de confidentialité</Link></li>
               <li><Link to="/cgu" className="hover:underline">Conditions d'utilisation</Link></li>
             </ul>
 
