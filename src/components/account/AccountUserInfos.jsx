@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import useAuthStore from "../../stores/authStore";
 import { toast } from "react-toastify";
 import { useMutation } from "@tanstack/react-query";
-import { updateUser } from "../../api/user";
+import { updateUser, deleteUserAvatar, deleteUserAccount } from "../../api/user";
 import ConfirmModal from "../modals/ConfirmModal";
 import PasswordUpdateModal from "../modals/PasswordUpdateModal";
 
@@ -46,6 +46,21 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const { mutate: deleteAvatar } = useMutation({
+    mutationFn: () => deleteUserAvatar(token),
+    onSuccess: () => {
+      toast.success("Avatar supprimé !");
+      setUser({
+        ...user,
+        profile: {
+          ...user.profile,
+          avatar: "",
+        },
+      });
+    },
+    onError: () => toast.error("Erreur lors de la suppression de l'avatar"),
+  });
+
   const mutation = useMutation({
     mutationFn: (values) => updateUser({ id: user._id, values, token }),
     onSuccess: () => {
@@ -63,6 +78,18 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
       });
     },
     onError: () => toast.error("Erreur lors de la mise à jour du profil"),
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => deleteUserAccount(user._id, token),
+    onSuccess: () => {
+      toast.success("Compte supprimé. À bientôt !");
+      logout();
+      navigate("/");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Impossible de supprimer le compte.");
+    },
   });
 
   const passwordMutation = useMutation({
@@ -86,6 +113,14 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
     });
   };
 
+  // To set if form values are changed 
+  const isModified =
+  form.email !== (user?.email || "") ||
+  form.username !== (user?.profile?.username || "") ||
+  form.firstName !== (user?.profile?.firstName || "") ||
+  form.lastName !== (user?.profile?.lastName || "") ||
+  form.phone !== (user?.profile?.phone || "");
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const values = {
@@ -101,29 +136,14 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
     mutation.mutate(values);
   };
 
-  const confirmDelete = async () => {
-    try {
-      const res = await fetch(`http://localhost:4000/user/${user._id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Erreur lors de la suppression");
-
-      toast.success("Compte supprimé. À bientôt !");
-      logout();
-      navigate("/");
-    } catch (err) {
-      toast.error("Impossible de supprimer le compte.");
-    }
+  const confirmDelete = () => {
+    deleteAccountMutation.mutate();
   };
-
+  
   return (
     <>
       {/* Avatar */}
-      <div className="flex flex-col items-center gap-2 mb-6">
+      <div className="flex flex-col items-center gap-2 mb-6 relative">
         <label className="relative cursor-pointer">
           <input
             type="file"
@@ -147,11 +167,26 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
               {initials}
             </div>
           )}
+
+          {/* + button */}
           <span className="absolute bottom-2 right-1 bg-primary text-white text-xs px-2 py-1 rounded-full shadow">
             +
           </span>
+
+          {/* - button */}
+          {hasValidAvatar && (
+            <button
+              type="button"
+              onClick={() => deleteAvatar()}
+              className="absolute bottom-2 left-1 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-full text-xs shadow"
+              title="Supprimer l'avatar"
+            >
+              –
+            </button>
+          )}
         </label>
       </div>
+
 
       {/* Form user infos */}
       <form className="grid grid-cols-1 sm:grid-cols-2 gap-4" onSubmit={handleSubmit}>
@@ -209,9 +244,15 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
         <div className="sm:col-span-2 flex justify-between items-center mt-4 gap-4 flex-wrap">
           <button
             type="submit"
-            className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition"
+            disabled={!isModified || mutation.isPending || mutation.isLoading}
+            aria-disabled={!isModified || mutation.isPending || mutation.isLoading}
+            className={`px-6 py-2 rounded transition
+              ${!isModified || mutation.isPending || mutation.isLoading
+                ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                : "bg-primary text-white hover:bg-primary/90"}
+            `}
           >
-            Enregistrer les modifications
+            {mutation.isPending || mutation.isLoading ? "Enregistrement..." : "Enregistrer les modifications"}          
           </button>
           <div className="flex gap-4">
             <button
