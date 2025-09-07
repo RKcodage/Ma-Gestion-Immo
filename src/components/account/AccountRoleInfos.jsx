@@ -4,7 +4,7 @@ import { updateTenant } from "../../api/tenant";
 import { toast } from "react-toastify";
 import useAuthStore from "../../stores/authStore";
 
-const AccountRoleInfos = ({ form, setForm }) => {
+const AccountRoleInfos = ({ form, setForm, initialForm = {} }) => {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
 
@@ -45,6 +45,33 @@ const AccountRoleInfos = ({ form, setForm }) => {
     e.preventDefault();
     mutation.mutate(form);
   };
+
+  // Detect modifications vs initial values
+  const isOwner = user.role === "Propriétaire";
+  const isModified = (() => {
+    if (isOwner) {
+      return (
+        (form.companyName || "") !== (initialForm.companyName || "") ||
+        (form.companyNumber || "") !== (initialForm.companyNumber || "") ||
+        (form.companyPhone || "") !== (initialForm.companyPhone || "") ||
+        (form.billingAddress || "") !== (initialForm.billingAddress || "") ||
+        (form.status || "") !== (initialForm.status || "")
+      );
+    }
+    // Tenant deep compare (including visaleGuarantee)
+    const vg = form.visaleGuarantee || {};
+    const vg0 = initialForm.visaleGuarantee || {};
+    return (
+      (form.address || "") !== (initialForm.address || "") ||
+      (form.birthDate || "") !== (initialForm.birthDate || "") ||
+      (form.employmentStatus || "") !== (initialForm.employmentStatus || "") ||
+      Boolean(form.guarantor) !== Boolean(initialForm.guarantor) ||
+      Boolean(vg.enabled) !== Boolean(vg0.enabled) ||
+      (vg.contractNumber || "") !== (vg0.contractNumber || "") ||
+      (vg.validityStart || "") !== (vg0.validityStart || "") ||
+      (vg.validityEnd || "") !== (vg0.validityEnd || "")
+    );
+  })();
 
   return (
     <div className="max-w-3xl mx-auto mt-8 p-6 bg-white shadow rounded">
@@ -202,9 +229,15 @@ const AccountRoleInfos = ({ form, setForm }) => {
 
         <button
           type="submit"
-          className="bg-primary text-white px-4 py-2 rounded"
+          disabled={!isModified || mutation.isPending || mutation.isLoading}
+          aria-disabled={!isModified || mutation.isPending || mutation.isLoading}
+          className={`px-6 py-2 rounded transition ${
+            !isModified || mutation.isPending || mutation.isLoading
+              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+              : "bg-primary text-white hover:bg-primary/90"
+          }`}
         >
-          Enregistrer
+          {mutation.isPending || mutation.isLoading ? "Enregistrement..." : "Enregistrer"}
         </button>
       </form>
     </div>
