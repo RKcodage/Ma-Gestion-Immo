@@ -152,6 +152,20 @@ export default function Chat() {
     if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ block: "end" });
   }, [messages, realtimeMessages]);
 
+  // Refresh conversations list when a new incoming message arrives (to update unread state)
+  useEffect(() => {
+    if (!socket || !user?._id) return;
+    const handler = (message) => {
+      const recipient =
+        typeof message?.recipientId === "object" ? message?.recipientId?._id : message?.recipientId;
+      if (recipient === user._id) {
+        queryClient.invalidateQueries(["conversations"]);
+      }
+    };
+    socket.on("new-message", handler);
+    return () => socket.off("new-message", handler);
+  }, [user?._id, queryClient]);
+
   // Avoid duplicated messages
   const merged = [...(messages || []), ...realtimeMessages];
   const seen = new Set();
@@ -186,27 +200,57 @@ export default function Chat() {
           ) : conversations.length === 0 ? (
             <p className="text-sm text-gray-500 p-4">Aucune conversation pour le moment</p>
           ) : (
-            conversations.map((conv) => (
-              <li
-                key={conv.user._id}
-                className={`p-4 cursor-pointer border-b ${
-                  selectedConversation === conv.user._id ? "bg-gray-100" : "hover:bg-gray-50"
-                }`}
-                onClick={() => handleSelectConversation(conv.user._id)}
-              >
-                <div className="font-medium">
-                  {conv.user.profile.firstName} {conv.user.profile.lastName}
-                </div>
-                <div className="text-sm text-gray-500 truncate">
-                  {conv.lastMessage?.content ?? ""}
-                </div>
-                <div className="text-xs text-gray-400">
-                  {conv.lastMessage?.sentAt
-                    ? new Date(conv.lastMessage.sentAt).toLocaleString()
-                    : ""}
-                </div>
-              </li>
-            ))
+            conversations.map((conv) => {
+              const peerId = conv?.user?._id;
+              const last = conv?.lastMessage || null;
+              const lastSenderId = typeof last?.senderId === "object" ? last?.senderId?._id : last?.senderId;
+              const hasUnreadCount = typeof conv?.unreadCount === "number" && conv.unreadCount > 0;
+              const lastReadFlag =
+                typeof last?.isRead === "boolean"
+                  ? last.isRead
+                  : typeof last?.read === "boolean"
+                  ? last.read
+                  : typeof last?.seen === "boolean"
+                  ? last.seen
+                  : last?.readAt
+                  ? true
+                  : undefined;
+              const isUnread =
+                hasUnreadCount ||
+                (!!last && lastSenderId && lastSenderId !== user?._id && (lastReadFlag === false || last?.readAt == null));
+
+              return (
+                <li
+                  key={peerId}
+                  className={`p-4 cursor-pointer border-b ${
+                    selectedConversation === peerId
+                      ? "bg-gray-100"
+                      : isUnread
+                      ? "bg-indigo-50 hover:bg-indigo-100"
+                      : "hover:bg-gray-50"
+                  }`}
+                  onClick={() => handleSelectConversation(peerId)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className={`font-medium ${isUnread ? "font-semibold" : ""}`}>
+                      {conv.user?.profile?.firstName} {conv.user?.profile?.lastName}
+                    </div>
+                    {isUnread && (
+                      <span
+                        className="ml-2 inline-block w-2.5 h-2.5 rounded-full bg-primary"
+                        aria-label={hasUnreadCount ? `${conv.unreadCount} message(s) non lus` : "Nouveau message non lu"}
+                      />
+                    )}
+                  </div>
+                  <div className={`text-sm truncate ${isUnread ? "text-gray-800 font-medium" : "text-gray-500"}`}>
+                    {last?.content ?? ""}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {last?.sentAt ? new Date(last.sentAt).toLocaleString() : ""}
+                  </div>
+                </li>
+              );
+            })
           )}
         </ul>
       </aside>
