@@ -173,13 +173,13 @@ export default function Chat() {
     .filter((msg) => {
       const sid = typeof msg.senderId === "object" ? msg.senderId?._id : msg.senderId;
       const rid = typeof msg.recipientId === "object" ? msg.recipientId?._id : msg.recipientId;
-      const ts = msg.sentAt || msg.createdAt;
+      const ts = msg.sentAt;
       const key = msg._id || `${sid}-${rid}-${ts}-${msg.content}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-    .sort((a, b) => new Date(a.sentAt || a.createdAt) - new Date(b.sentAt || b.createdAt));
+    .sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt));
 
   return (
     <div className="h-[calc(100vh-120px)] flex border rounded overflow-hidden">
@@ -205,19 +205,8 @@ export default function Chat() {
               const last = conv?.lastMessage || null;
               const lastSenderId = typeof last?.senderId === "object" ? last?.senderId?._id : last?.senderId;
               const hasUnreadCount = typeof conv?.unreadCount === "number" && conv.unreadCount > 0;
-              const lastReadFlag =
-                typeof last?.isRead === "boolean"
-                  ? last.isRead
-                  : typeof last?.read === "boolean"
-                  ? last.read
-                  : typeof last?.seen === "boolean"
-                  ? last.seen
-                  : last?.readAt
-                  ? true
-                  : undefined;
               const isUnread =
-                hasUnreadCount ||
-                (!!last && lastSenderId && lastSenderId !== user?._id && (lastReadFlag === false || last?.readAt == null));
+                hasUnreadCount || (!!last && lastSenderId && lastSenderId !== user?._id && last?.isRead === false);
 
               return (
                 <li
@@ -292,7 +281,7 @@ export default function Chat() {
                       msg._id ||
                       `${senderId}-${
                         typeof msg.recipientId === "object" ? msg.recipientId._id : msg.recipientId
-                      }-${msg.sentAt || msg.createdAt}-${msg.content}`
+                      }-${msg.sentAt}-${msg.content}`
                     }
                     className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                   >
