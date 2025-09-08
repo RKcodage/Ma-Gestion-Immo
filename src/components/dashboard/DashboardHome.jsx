@@ -562,7 +562,22 @@ const DashboardHome = () => {
                         <li className="text-gray-500">Aucune date de fin à venir</li>
                       ) : (
                         future.map((x) => (
-                          <li key={x.id} className="border rounded p-2 text-sm">
+                          <li
+                            key={x.id}
+                            onClick={() => {
+                              setKpiOpen(false);
+                              navigate(`/dashboard/leases?leaseId=${x.id}`);
+                            }}
+                            className="border rounded p-2 text-sm cursor-pointer hover:bg-gray-50 transition"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setKpiOpen(false);
+                                navigate(`/dashboard/leases?leaseId=${x.id}`);
+                              }
+                            }}
+                          >
                             <span className="text-primary font-medium">{x.address}</span> · <span className="italic">{x.unit}</span>
                             <span className="float-right font-semibold">{x.end.toLocaleDateString("fr-FR")}</span>
                           </li>
