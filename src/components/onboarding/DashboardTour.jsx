@@ -124,7 +124,7 @@ const DashboardTour = () => {
       {
         target: "[data-tour='dashboard-leases']",
         content:
-          "Accédez à vos baux depuis cette tuile pour consulter et gérer les contrats.",
+          "Accédez à vos locations depuis cette tuile pour consulter et gérer les contrats.",
         placement: "top",
       },
       {
