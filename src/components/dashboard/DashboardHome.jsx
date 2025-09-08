@@ -14,6 +14,7 @@ import AddPropertyModal from "../modals/AddPropertyModal";
 import CreateLeaseModal from "../modals/CreateLeaseModal";
 import AddDocumentModal from "../modals/AddDocumentModal";
 import { fetchOwnerByUserId } from "../../api/owner";
+import KpiDetailsModal from "../modals/KpiDetailsModal";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
@@ -84,6 +85,9 @@ const DashboardHome = () => {
   const [addPropertyOpen, setAddPropertyOpen] = useState(false);
   const [addLeaseOpen, setAddLeaseOpen] = useState(false);
   const [addDocumentOpen, setAddDocumentOpen] = useState(false);
+  const [kpiOpen, setKpiOpen] = useState(false);
+  const [kpiTitle, setKpiTitle] = useState("");
+  const [kpiContent, setKpiContent] = useState(null);
 
   return (
     <div className="space-y-6">
@@ -128,12 +132,78 @@ const DashboardHome = () => {
                 label="Loyer(s) du mois en cours"
                 value={fmtEUR(monthlyRent)}
                 dataTour="kpi-monthly-rent"
+                onClick={() => {
+                  const items = leases
+                    .filter(isActive)
+                    .map((l) => ({
+                      id: l._id,
+                      address: l.unitId?.propertyId?.address || "—",
+                      unit: l.unitId?.label || "—",
+                      amount: fmtEUR(l.rentAmount),
+                    }));
+                  setKpiTitle("Baux actifs et loyers du mois");
+                  setKpiContent(
+                    <ul className="space-y-2">
+                      {items.length === 0 ? (
+                        <li className="text-gray-500">Aucun bail actif</li>
+                      ) : (
+                        items.map((it) => (
+                          <li
+                            key={it.id}
+                            onClick={() => {
+                              setKpiOpen(false);
+                              navigate(`/dashboard/leases?leaseId=${it.id}`);
+                            }}
+                            className="flex justify-between gap-3 border p-2 rounded cursor-pointer hover:bg-gray-50 transition"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setKpiOpen(false);
+                                navigate(`/dashboard/leases?leaseId=${it.id}`);
+                              }
+                            }}
+                          >
+                            <span className="text-gray-700 text-sm">
+                              <span className="font-medium text-primary">{it.address}</span> · <span className="italic">{it.unit}</span>
+                            </span>
+                            <span className="text-gray-900 font-semibold text-sm">{it.amount}</span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
               <KpiCard
                 icon={<UsersIcon className="w-4 h-4 text-primary" />}
                 label="Locataire(s) actifs"
                 value={tenantsCount}
                 dataTour="kpi-tenants-active"
+                onClick={() => {
+                  const names = Array.from(
+                    new Set(
+                      leases
+                        .filter(isActive)
+                        .flatMap((l) => (Array.isArray(l.tenants) ? l.tenants : [])
+                          .map((t) => `${t?.userId?.profile?.firstName || ""} ${t?.userId?.profile?.lastName || ""}`.trim())
+                        )
+                        .filter(Boolean)
+                    )
+                  );
+                  setKpiTitle("Locataires actifs");
+                  setKpiContent(
+                    <ul className="list-disc pl-5 space-y-1">
+                      {names.length === 0 ? (
+                        <li className="text-gray-500">Aucun locataire actif</li>
+                      ) : (
+                        names.map((n, i) => <li key={`${n}-${i}`}>{n}</li>)
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
               <KpiCard
                 icon={<HomeIcon className="w-4 h-4 text-primary" />}
@@ -141,6 +211,62 @@ const DashboardHome = () => {
                 value={occupancyRate !== null ? `${occupancyRate}%` : "—"}
                 hint={totalUnits ? `${occupiedUnits}/${totalUnits} unités occupées` : undefined}
                 dataTour="kpi-occupancy"
+                onClick={() => {
+                  const occupiedIds = new Set(leases.filter(isActive).map((l) => String(l.unitId?._id || "")));
+                  const byPropId = new Map(
+                    (ownerProperties || []).map((p) => [String(p?._id), p])
+                  );
+                  const rows = (allUnits || [])
+                    .filter((u) => occupiedIds.has(String(u?._id)))
+                    .map((u) => {
+                      const propRef = u?.propertyId;
+                      const propId = typeof propRef === "object" ? (propRef?._id || propRef?.id || "") : (propRef || "");
+                      const address =
+                        (typeof propRef === "object" && propRef?.address) ||
+                        (byPropId.get(String(propId))?.address) ||
+                        "—";
+                      return {
+                        id: u._id,
+                        unit: u?.label || "—",
+                        address,
+                        propertyId: String(propId),
+                      };
+                    });
+                  setKpiTitle("Unités occupées (propriété et unité)");
+                  setKpiContent(
+                    <ul className="space-y-1">
+                      {rows.length === 0 ? (
+                        <li className="text-gray-500">Aucune unité occupée</li>
+                      ) : (
+                        rows.map((r) => (
+                          <li
+                            key={r.id}
+                            onClick={() => {
+                              setKpiOpen(false);
+                              if (r.propertyId) {
+                                navigate(`/dashboard/property/${r.propertyId}`);
+                              }
+                            }}
+                            className="border rounded p-2 text-sm cursor-pointer hover:bg-gray-50 transition"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setKpiOpen(false);
+                                if (r.propertyId) {
+                                  navigate(`/dashboard/property/${r.propertyId}`);
+                                }
+                              }
+                            }}
+                          >
+                            <span className="text-primary font-medium">{r.address}</span> · <span className="italic">{r.unit}</span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
             </div>
           );
@@ -304,6 +430,9 @@ const DashboardHome = () => {
           units={units}
           properties={properties}
         />
+        <KpiDetailsModal open={kpiOpen} onClose={() => setKpiOpen(false)} title={kpiTitle}>
+          {kpiContent}
+        </KpiDetailsModal>
         </>
       ) : (
         <>
@@ -346,18 +475,103 @@ const DashboardHome = () => {
                 label="Loyer(s) du mois en cours"
                 value={fmtEUR(tenantMonthlyRent)}
                 dataTour="kpi-tenant-monthly"
+                onClick={() => {
+                  const items = leases
+                    .filter(isActive)
+                    .map((l) => ({
+                      id: l._id,
+                      address: l.unitId?.propertyId?.address || "—",
+                      unit: l.unitId?.label || "—",
+                      amount: fmtEUR(l.rentAmount),
+                    }));
+                  setKpiTitle("Mes loyers du mois (locations en cours)");
+                  setKpiContent(
+                    <ul className="space-y-2">
+                      {items.length === 0 ? (
+                        <li className="text-gray-500">Aucun bail actif</li>
+                      ) : (
+                        items.map((it) => (
+                          <li
+                            key={it.id}
+                            onClick={() => {
+                              setKpiOpen(false);
+                              navigate(`/dashboard/leases?leaseId=${it.id}`);
+                            }}
+                            className="flex justify-between gap-3 border p-2 rounded cursor-pointer hover:bg-gray-50 transition"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                setKpiOpen(false);
+                                navigate(`/dashboard/leases?leaseId=${it.id}`);
+                              }
+                            }}
+                          >
+                            <span className="text-gray-700 text-sm">
+                              <span className="font-medium text-primary">{it.address}</span> · <span className="italic">{it.unit}</span>
+                            </span>
+                            <span className="text-gray-900 font-semibold text-sm">{it.amount}</span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
               <KpiCard
                 icon={<UsersIcon className="w-4 h-4 text-primary" />}
                 label="Propriétaire(s) actifs"
                 value={ownersCount}
                 dataTour="kpi-owners-active"
+                onClick={() => {
+                  const names = Array.from(
+                    new Set(
+                      leases
+                        .filter(isActive)
+                        .map((l) => `${l?.ownerId?.userId?.profile?.firstName || ""} ${l?.ownerId?.userId?.profile?.lastName || ""}`.trim())
+                    )
+                  ).filter(Boolean);
+                  setKpiTitle("Mes propriétaires");
+                  setKpiContent(
+                    <ul className="list-disc pl-5 space-y-1">
+                      {names.length === 0 ? (
+                        <li className="text-gray-500">Aucun propriétaire</li>
+                      ) : (
+                        names.map((n, i) => <li key={`${n}-${i}`}>{n}</li>)
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
               <KpiCard
                 icon={<CalendarClock className="w-4 h-4 text-primary" />}
                 label="Fin du prochain bail"
                 value={nextEndLabel}
                 dataTour="kpi-next-end"
+                onClick={() => {
+                  const future = leases
+                    .map((l) => ({ id: l._id, end: l.endDate ? new Date(l.endDate) : null, address: l.unitId?.propertyId?.address || "—", unit: l.unitId?.label || "—" }))
+                    .filter((x) => x.end && x.end >= now)
+                    .sort((a, b) => a.end - b.end);
+                  setKpiTitle("Prochaine date de fin de location");
+                  setKpiContent(
+                    <ul className="space-y-1">
+                      {future.length === 0 ? (
+                        <li className="text-gray-500">Aucune date de fin à venir</li>
+                      ) : (
+                        future.map((x) => (
+                          <li key={x.id} className="border rounded p-2 text-sm">
+                            <span className="text-primary font-medium">{x.address}</span> · <span className="italic">{x.unit}</span>
+                            <span className="float-right font-semibold">{x.end.toLocaleDateString("fr-FR")}</span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  );
+                  setKpiOpen(true);
+                }}
               />
             </div>
           );
@@ -467,6 +681,9 @@ const DashboardHome = () => {
             </ul>
           </DashboardTile>
         </div>
+        <KpiDetailsModal open={kpiOpen} onClose={() => setKpiOpen(false)} title={kpiTitle}>
+          {kpiContent}
+        </KpiDetailsModal>
         </>
       )}
     </div>
