@@ -41,15 +41,15 @@ const useAuthStore = create((set, get) => ({
     const skewMs = 5000; // marge anti-dérive (5s)
     const delay = Math.max(exp * 1000 - Date.now() - skewMs, 0);
 
-    console.debug(
-      "[auth] exp =",
-      new Date(exp * 1000).toISOString(),
-      "delayMs =",
-      delay,
-    );
+    // console.debug(
+    //   "[auth] exp =",
+    //   new Date(exp * 1000).toISOString(),
+    //   "delayMs =",
+    //   delay,
+    // );
 
     const id = window.setTimeout(() => {
-      console.debug("[auth] auto-logout (token expired)");
+      // console.debug("[auth] auto-logout (token expired)");
       get().logout();
     }, delay);
 
