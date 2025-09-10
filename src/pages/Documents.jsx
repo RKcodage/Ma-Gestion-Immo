@@ -15,6 +15,8 @@ import Select from "@/components/components/ui/select";
 import { toast } from "react-toastify";
 import useClickOutside from "../hooks/useClickOutside";
 import { IoIosAddCircle } from "react-icons/io";
+import { ArrowLeft } from "lucide-react";
+import AddActionButton from "@/components/buttons/AddActionButton";
 
 export default function Documents() {
   const user = useAuthStore((state) => state.user);
@@ -94,15 +96,26 @@ export default function Documents() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes Documents</h1>
+      <div className="flex items-center gap-3 mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold">Mes Documents</h1>
+      </div>
 
       <div className="flex justify-between items-center mb-6">
-        <button
+        <AddActionButton
           onClick={() => setModalOpen(true)}
-          className="bg-primary text-white px-6 py-3 rounded-md hover:bg-primary/80 transition w-full sm:w-auto flex items-center gap-2"
-        >
-          <IoIosAddCircle /> Ajouter un document
-        </button>
+          label="Ajouter un document"
+          icon={IoIosAddCircle}
+          variant="primary"
+          size="md"
+          className="w-full sm:w-auto"
+        />
 
         <div className="flex gap-4 items-center">
           <Select
