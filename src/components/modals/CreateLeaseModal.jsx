@@ -5,11 +5,12 @@ import { toast } from "react-toastify";
 import useAuthStore from "@/stores/authStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/components/ui/dialog";
 
-const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) => {
+const CreateLeaseModal = ({ open, onClose, units = [], properties = [], ownerId, token }) => {
   const queryClient = useQueryClient();
   const user = useAuthStore((s) => s.user);
 
   const [form, setForm] = useState({
+    propertyId: "",
     unitId: "",
     tenantEmails: [""],
     startDate: "",
@@ -24,8 +25,7 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
     mutationFn: (data) => createLease({ ...data, ownerId }, token),
     onSuccess: () => {
       toast.success("Bail créé !");
-      queryClient.invalidateQueries(["leases", ownerId]);
-      queryClient.invalidateQueries(["units", propertyId]);
+      queryClient.invalidateQueries({ queryKey: ["leases"], exact: false });
       onClose();
     },
     onError: () => toast.error("Erreur lors de la création du bail."),
@@ -33,6 +33,11 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "propertyId") {
+      // Reset unit when property changes
+      setForm((prev) => ({ ...prev, propertyId: value, unitId: "" }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -46,6 +51,11 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
     mutation.mutate(form);
   };
 
+  // Filter units by selected property (when provided)
+  const filteredUnits = form.propertyId
+    ? units.filter((u) => u?.propertyId?._id === form.propertyId)
+    : units;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
@@ -54,9 +64,25 @@ const CreateLeaseModal = ({ open, onClose, propertyId, units, ownerId, token }) 
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          {properties.length > 0 && (
+            <select
+              name="propertyId"
+              required
+              value={form.propertyId}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border rounded"
+            >
+              <option value="">-- Sélectionnez une propriété --</option>
+              {properties.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.address} ({p.city})
+                </option>
+              ))}
+            </select>
+          )}
           <select name="unitId" required value={form.unitId} onChange={handleChange} className="w-full px-4 py-2 border rounded">
             <option value="">-- Sélectionnez une unité --</option>
-            {units.map((unit) => (
+            {filteredUnits.map((unit) => (
               <option key={unit._id} value={unit._id}>{unit.label}</option>
             ))}
           </select>
