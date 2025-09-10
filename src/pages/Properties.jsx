@@ -128,7 +128,7 @@ export default function Properties() {
                   <HelpCircle className="w-4 h-4 text-white" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">
+              <TooltipContent side="right" className="text-black bg-white border border-gray-200 shadow-lg pointer-events-none">
                 Cliquez sur l’adresse d’une propriété pour créer des unités et des baux.
               </TooltipContent>
             </Tooltip>
