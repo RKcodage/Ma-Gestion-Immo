@@ -349,7 +349,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      🕓 Prochaine échéance : {" "}
+                      Prochaine échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
                       </span>
@@ -380,14 +380,10 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      💶 Dernière échéance : {" "}
+                      Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {lease.lastPaymentDate
-                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
+                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")
                           : "Date inconnue"}
                       </span>
                     </div>
@@ -639,7 +635,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      🕓 Prochaine échéance : {" "}
+                      Prochaine échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
                       </span>
@@ -670,7 +666,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      💶 Dernière échéance : {" "}
+                      Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {lease.lastPaymentDate
                           ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")
