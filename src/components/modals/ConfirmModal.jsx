@@ -9,8 +9,8 @@ import React, { useEffect, useRef } from "react";
 const ConfirmModal = ({
   title = "Are you sure?",
   message = "This action is irreversible.",
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel = "Confirmer",
+  cancelLabel = "Annuler",
   onConfirm,
   onCancel,
 }) => {
