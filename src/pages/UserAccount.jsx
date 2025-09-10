@@ -22,6 +22,7 @@ const UserAccount = () => {
   const [avatarError, setAvatarError] = useState(false);
 
   const [form, setForm] = useState({});
+  const [initialRoleForm, setInitialRoleForm] = useState({});
 
   const { data: ownerData } = useQuery({
     queryKey: ["owner", user._id],
@@ -44,15 +45,17 @@ const UserAccount = () => {
   // Set form depends on user role 
   useEffect(() => {
     if (user.role === "Propriétaire" && ownerData) {
-      setForm({
+      const next = {
         companyName: ownerData.companyName || "",
         companyNumber: ownerData.companyNumber || "",
         companyPhone: ownerData.companyPhone || "",
         billingAddress: ownerData.billingAddress || "",
         status: ownerData.status || "",
-      });
+      };
+      setForm(next);
+      setInitialRoleForm(next);
     } else if (user.role === "Locataire" && tenantData) {
-      setForm({
+      const next = {
         address: tenantData.address || "",
         birthDate: tenantData.birthDate || "",
         employmentStatus: tenantData.employmentStatus || "",
@@ -63,7 +66,9 @@ const UserAccount = () => {
           validityStart: tenantData.visaleGuarantee?.validityStart || "",
           validityEnd: tenantData.visaleGuarantee?.validityEnd || "",
         },
-      });
+      };
+      setForm(next);
+      setInitialRoleForm(next);
     }
   }, [ownerData, tenantData, user.role]);
 
@@ -121,7 +126,7 @@ const UserAccount = () => {
       />
 
       {/* User role infos */}
-      <AccountRoleInfos form={form} setForm={setForm} />
+      <AccountRoleInfos form={form} setForm={setForm} initialForm={initialRoleForm} />
     </div>
   );
 };
