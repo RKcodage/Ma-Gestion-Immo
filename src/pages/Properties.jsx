@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/components/ui/table";
+import DataTable from "@/components/data-table/DataTable";
 import { columns } from "../components/properties/columns";
 import PropertyCarousel from "../components/properties/PropertyCarousel";
 // Api
@@ -126,34 +119,7 @@ export default function Properties() {
       ) : isError ? (
         <p>Erreur lors du chargement des propriétés.</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns(handleEdit, handleDelete).map((col) => (
-                <TableHead key={col.accessorKey || col.id}>{col.header}</TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredProperties.length > 0 ? (
-              filteredProperties.map((row) => (
-                <TableRow key={row._id}>
-                  {columns(handleEdit, handleDelete).map((col) => (
-                    <TableCell key={col.accessorKey || col.id}>
-                      {col.cell ? col.cell({ row }) : row[col.accessorKey]}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns(handleEdit, handleDelete).length} className="text-center">
-                  Aucune propriété trouvée.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+        <DataTable data={filteredProperties} columns={columns(handleEdit, handleDelete)} />
       )}
 
 {filteredProperties.length > 0 && (
