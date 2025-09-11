@@ -22,15 +22,22 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [], properties =
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-  
-    if (name === "unitId") {
-      // If user is an owner, find the lease related to the choosen unit 
-      const matchingLease = leases.find((l) => l.unitId?._id === value);
 
+    if (name === "propertyId") {
+      // Reset dependent fields when changing property
+      setForm((prev) => ({
+        ...prev,
+        propertyId: value,
+        unitId: "",
+        leaseId: "",
+      }));
+    } else if (name === "unitId") {
+      // On unit change, if exactly one lease matches preselect it, else force explicit choice
+      const matching = leases.filter((l) => l.unitId?._id === value);
       setForm((prev) => ({
         ...prev,
         unitId: value,
-        leaseId: matchingLease ? matchingLease._id : "", 
+        leaseId: matching.length === 1 ? matching[0]._id : "",
       }));
     } else {
       setForm((prev) => ({
@@ -61,9 +68,15 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [], properties =
       return toast.error("Tous les champs obligatoires doivent être remplis");
     }
 
-    // Owner : unit required
-    if (role === "Propriétaire" && !form.unitId) {
-      return toast.error("Sélectionnez une unité concernée");
+    // Owner validations
+    if (role === "Propriétaire") {
+      if (!form.unitId) {
+        return toast.error("Sélectionnez une unité concernée");
+      }
+      const unitLeases = leases.filter((l) => l.unitId?._id === form.unitId);
+      if (unitLeases.length > 1 && !form.leaseId) {
+        return toast.error("Sélectionnez le bail concerné");
+      }
     }
 
     // Tenant : lease required
@@ -78,6 +91,12 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [], properties =
   const filteredUnits = form.propertyId
     ? units.filter((u) => u.propertyId?._id === form.propertyId)
     : units;
+
+  // Leases linked to the selected unit (Owner view).
+  // If more than one lease exists, show a "Lease" select (Unit — Tenants)
+  const unitLeasesForOwner = form.unitId
+    ? leases.filter((l) => l.unitId?._id === form.unitId)
+    : [];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -142,6 +161,30 @@ const AddDocumentModal = ({ open, onClose, leases = [], units = [], properties =
                   </option>
                 ))}
               </select>
+
+              {/* Lease select shown if multiple leases exist for the selected unit */}
+              {form.unitId && unitLeasesForOwner.length > 1 && (
+                <select
+                  name="leaseId"
+                  value={form.leaseId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded"
+                >
+                  <option value="">-- Sélectionnez le bail --</option>
+                  {unitLeasesForOwner.map((l) => {
+                    const tenants = Array.isArray(l.tenants) ? l.tenants : [];
+                    const names = tenants
+                      .map((t) => `${t?.userId?.profile?.firstName ?? ""} ${t?.userId?.profile?.lastName ?? ""}`.trim())
+                      .filter(Boolean)
+                      .join(", ");
+                    return (
+                      <option key={l._id} value={l._id}>
+                        {l.unitId?.label || "Unité"} — {names || "Sans locataire"}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
             </>
           )}
 
