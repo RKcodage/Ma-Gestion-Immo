@@ -11,6 +11,7 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
+import ActionIconButton from "@/components/buttons/ActionIconButton";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -45,7 +46,7 @@ export default function LeaseCard({
   const tenants = Array.isArray(lease?.tenants) ? lease.tenants : [];
   const primaryTenant = tenants[0]?.userId || null;
 
-  // Noms des locataires pour le badge + tooltip
+  // Tenants names (for badge + tooltip)
   const tenantNames = tenants
     .map((t) => `${t?.userId?.profile?.firstName ?? ""} ${t?.userId?.profile?.lastName ?? ""}`.trim())
     .filter(Boolean);
@@ -111,7 +112,7 @@ export default function LeaseCard({
                   : "Aucun locataire rattaché"}
               </span>
 
-              {/* Badge + tooltip si colocs supplémentaires */}
+              {/* Extra names badge and tooltip */}
               {extraCount > 0 && (
                 <span className="relative group">
                   {/* Badge */}
@@ -172,41 +173,27 @@ export default function LeaseCard({
 
       {/* Actions */}
       <div className="mt-6 flex items-center justify-end gap-2">
-        <button
-          type="button"
+        <ActionIconButton
+          label="Documents"
+          icon={FileText}
           onClick={() => onViewDocuments?.(lease)}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-md border border-gray-200 hover:bg-gray-50"
-          title="Voir les documents"
-          aria-label="Voir les documents"
-        >
-          <FileText className="w-4 h-4" />
-          <span className="hidden sm:inline">Documents</span>
-        </button>
-
+          variant="neutral"
+        />
         {userRole === "Propriétaire" && (
-          <button
-            type="button"
+          <ActionIconButton
+            label="Modifier"
+            icon={Pencil}
             onClick={() => onEdit?.(lease)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-primary hover:bg-primary/80"
-            title="Modifier"
-            aria-label="Modifier"
-          >
-            <Pencil className="w-4 h-4" />
-            <span className="hidden sm:inline">Modifier</span>
-          </button>
+            variant="primary"
+          />
         )}
-
         {userRole === "Propriétaire" && (
-          <button
-            type="button"
+          <ActionIconButton
+            label="Supprimer"
+            icon={Trash2}
             onClick={() => onDelete?.(lease)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
-            title="Supprimer"
-            aria-label="Supprimer"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Supprimer</span>
-          </button>
+            variant="danger"
+          />
         )}
       </div>
     </div>
