@@ -5,7 +5,8 @@ import Difficulties from "../components/homepage/Difficulties";
 import Cta from "../components/homepage/Cta";
 import Testimonies from "../components/homepage/Testimonies";
 import Footer from "../components/homepage/Footer";
-import SEO from "../components/SEO/Seo";
+import SEO from "../components/SEO/SEO";
+import Reveal from "@/components/animations/Reveal";
 
 
 const Home = () => {
@@ -18,10 +19,22 @@ const Home = () => {
       />
       
       <Hero />
-      <Services />
-      <Difficulties />
-      <Cta />
-      <Testimonies />
+
+      <Reveal from="up" amount={0.25}>
+        <Services />
+      </Reveal>
+
+      <Reveal from="up" delay={0.1} amount={0.2}>
+        <Difficulties />
+      </Reveal>
+
+      <Reveal from="up" delay={0.15} amount={0.2}>
+        <Cta />
+      </Reveal>
+
+      <Reveal from="up" delay={0.2} amount={0.2}>
+        <Testimonies />
+      </Reveal>
       <Footer />
     </div>
   );
