@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import useAuthStore from "../stores/authStore";
 import { ArrowLeft } from "lucide-react";
+import SEO from "../components/SEO/SEO";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -22,6 +23,12 @@ const ForgotPassword = () => {
 
   return (
     <div className="flex h-screen w-full">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Mot de passe oublié"
+        description="Recevez un lien pour réinitialiser votre mot de passe."
+        noIndex
+      />
       {/* Image */}
       <div className="w-[40%] h-full">
         <img
@@ -56,10 +63,15 @@ const ForgotPassword = () => {
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            id="forgot-email"
+            placeholder="gestion@domaine.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            autoComplete="email"
+            inputMode="email"
+            aria-invalid={!!error}
+            aria-describedby={error ? "forgot-error" : undefined}
             className="w-3/4 mx-auto block px-4 py-2 border rounded"
           />
 
@@ -74,7 +86,7 @@ const ForgotPassword = () => {
           </div>
 
           {error && (
-            <p className="text-red-600 text-sm text-center">{error}</p>
+            <p id="forgot-error" role="alert" className="text-red-600 text-sm text-center">{error}</p>
           )}
         </form>
       </div>

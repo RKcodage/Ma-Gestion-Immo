@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/c
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateProperty } from "../../api/property";
 import { toast } from "react-toastify";
+import useSubmitLockStore from "@/stores/submitLockStore";
 import useAuthStore from "../../stores/authStore";
 
 const EditPropertyModal = ({ open, onClose, property }) => {
@@ -50,6 +51,8 @@ const EditPropertyModal = ({ open, onClose, property }) => {
       toast.error("Erreur lors de la mise à jour");
     },
   });
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,7 +61,17 @@ const EditPropertyModal = ({ open, onClose, property }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(form);
+    if (isLocked("edit-property") || mutation.isLoading) return;
+    withLock(
+      "edit-property",
+      () =>
+        new Promise((resolve) =>
+          mutation.mutate(form, {
+            onSettled: resolve,
+          })
+        ),
+      200
+    );
   };
 
   return (
@@ -182,9 +195,10 @@ const EditPropertyModal = ({ open, onClose, property }) => {
             </button>
             <button
               type="submit"
-              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition"
+              disabled={isLocked("edit-property") || mutation.isLoading}
+              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition disabled:opacity-60"
             >
-              Enregistrer
+              {isLocked("edit-property") || mutation.isLoading ? "Enregistrement..." : "Enregistrer"}
             </button>
           </div>
         </form>

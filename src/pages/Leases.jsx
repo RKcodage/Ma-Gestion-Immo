@@ -9,6 +9,7 @@ import { MoreVertical, ArrowLeft } from "lucide-react";
 import Select from "@/components/components/ui/select";
 import LeaseCard from "@/components/cards/LeaseCard";
 import { toast } from "react-toastify";
+import SEO from "../components/SEO/SEO";
 
 
 export default function Leases() {
@@ -94,6 +95,12 @@ export default function Leases() {
 
   return (
     <div className="px-6 py-2">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Mes baux"
+        description="Consultez, filtrez et gérez vos baux et locations."
+        noIndex
+      />
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}

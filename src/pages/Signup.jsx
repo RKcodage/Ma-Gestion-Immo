@@ -3,8 +3,10 @@ import { useNavigate, Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useQuery } from "@tanstack/react-query";
 import useAuthStore from "../stores/authStore";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { fetchInvitationByToken } from "../api/invitation";
+import SEO from "../components/SEO/SEO";
+import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 
 const Signup = () => {
   const { token: invitationToken } = useParams();
@@ -23,6 +25,8 @@ const Signup = () => {
       phone: "",
     },
   });
+  const visible = usePasswordVisibilityStore((s) => Boolean(s.vis?.["signup.password"]));
+  const toggle = usePasswordVisibilityStore((s) => s.toggle);
 
   // Invitation query
   const { data: invitationData } = useQuery({
@@ -87,6 +91,12 @@ const Signup = () => {
 
   return (
     <div className="flex h-screen w-full">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Inscription"
+        description="Créez votre compte pour centraliser vos documents, baux et échanges."
+        noIndex
+      />
       {/* Left image */}
       <div className="w-[40%] h-full">
         <img
@@ -121,28 +131,48 @@ const Signup = () => {
               value={form.email}
               onChange={handleChange}
               required
+              placeholder="gestion@domaine.com"
+              autoComplete="email"
+              inputMode="email"
+              aria-invalid={!!getFieldError("email")}
+              aria-describedby={getFieldError("email") ? "email-error" : undefined}
+              aria-disabled={!!invitationData?.email}
               className="w-full block px-4 py-2 border rounded"
               disabled={!!invitationData?.email}
             />
             {getFieldError("email") && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError("email")}</p>
+              <p id="email-error" role="alert" className="text-red-500 text-sm mt-1">{getFieldError("email")}</p>
             )}
           </div>
 
           {/* Password */}
           <div className="w-3/4 mx-auto">
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full block px-4 py-2 border rounded"
-            />
+            <div className="relative">
+              <input
+                type={visible ? "text" : "password"}
+                name="password"
+                id="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                placeholder="Créez un mot de passe"
+                autoComplete="new-password"
+                aria-invalid={!!getFieldError("password")}
+                aria-describedby={getFieldError("password") ? "password-error" : undefined}
+                className="w-full block px-4 py-2 border rounded pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggle("signup.password")}
+                aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-500 hover:text-gray-700"
+              >
+                {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             {getFieldError("password") && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError("password")}</p>
+              <p id="password-error" role="alert" className="text-red-500 text-sm mt-1">{getFieldError("password")}</p>
             )}
           </div>
 
@@ -155,10 +185,14 @@ const Signup = () => {
               id="profile.firstName"
               value={form.profile.firstName}
               onChange={handleChange}
+              placeholder="John"
+              autoComplete="given-name"
+              aria-invalid={!!getFieldError("profile.firstName")}
+              aria-describedby={getFieldError("profile.firstName") ? "profile.firstName-error" : undefined}
               className="w-full block px-4 py-2 border rounded"
             />
             {getFieldError("profile.firstName") && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.firstName")}</p>
+              <p id="profile.firstName-error" role="alert" className="text-red-500 text-sm mt-1">{getFieldError("profile.firstName")}</p>
             )}
           </div>
 
@@ -171,10 +205,14 @@ const Signup = () => {
               id="profile.lastName"
               value={form.profile.lastName}
               onChange={handleChange}
+              placeholder="Doe"
+              autoComplete="family-name"
+              aria-invalid={!!getFieldError("profile.lastName")}
+              aria-describedby={getFieldError("profile.lastName") ? "profile.lastName-error" : undefined}
               className="w-full block px-4 py-2 border rounded"
             />
             {getFieldError("profile.lastName") && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError("profile.lastName")}</p>
+              <p id="profile.lastName-error" role="alert" className="text-red-500 text-sm mt-1">{getFieldError("profile.lastName")}</p>
             )}
           </div>
 
@@ -187,6 +225,8 @@ const Signup = () => {
               id="profile.username"
               value={form.profile.username}
               onChange={handleChange}
+              placeholder="Choisissez un identifiant"
+              autoComplete="username"
               className="w-full block px-4 py-2 border rounded"
             />
             {/* {getFieldError("profile.username") && (
@@ -203,6 +243,9 @@ const Signup = () => {
               id="profile.phone"
               value={form.profile.phone}
               onChange={handleChange}
+              placeholder="06 12 34 56 78"
+              inputMode="tel"
+              autoComplete="tel"
               className="w-full block px-4 py-2 border rounded"
             />
             {/* {getFieldError("profile.phone") && (
@@ -222,7 +265,7 @@ const Signup = () => {
 
           <p className="text-center text-sm text-primary">
             <Link to="/login" className="text-primary hover:underline">
-              Déjà un compte ? Se connecter
+              Déjà un compte ? Se connecter.
             </Link>
           </p>
 

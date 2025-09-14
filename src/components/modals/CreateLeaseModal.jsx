@@ -4,6 +4,7 @@ import { createLease } from "@/api/lease";
 import { toast } from "react-toastify";
 import useAuthStore from "@/stores/authStore";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/components/ui/dialog";
+import useSubmitLockStore from "@/stores/submitLockStore";
 
 const CreateLeaseModal = ({ open, onClose, units = [], properties = [], ownerId, token }) => {
   const queryClient = useQueryClient();
@@ -20,6 +21,9 @@ const CreateLeaseModal = ({ open, onClose, units = [], properties = [], ownerId,
     deposit: "",
     paymentDate: "",
   });
+
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
 
   const mutation = useMutation({
     mutationFn: (data) => createLease({ ...data, ownerId }, token),
@@ -48,7 +52,17 @@ const CreateLeaseModal = ({ open, onClose, units = [], properties = [], ownerId,
       toast.error("Action non autorisée");
       return;
     }
-    mutation.mutate(form);
+    if (isLocked("create-lease") || mutation.isLoading) return;
+    withLock(
+      "create-lease",
+      () =>
+        new Promise((resolve) =>
+          mutation.mutate(form, {
+            onSettled: resolve,
+          })
+        ),
+      200
+    );
   };
 
   // Filter units by selected property (when provided)
@@ -145,7 +159,13 @@ const CreateLeaseModal = ({ open, onClose, units = [], properties = [], ownerId,
 
           <div className="flex justify-end gap-4 pt-4">
             <button type="button" onClick={onClose} className="text-sm text-gray-600 hover:underline">Annuler</button>
-            <button type="submit" className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90">Créer</button>
+            <button
+              type="submit"
+              disabled={isLocked("create-lease") || mutation.isLoading}
+              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
+            >
+              {isLocked("create-lease") || mutation.isLoading ? "Création..." : "Créer"}
+            </button>
           </div>
         </form>
       </DialogContent>

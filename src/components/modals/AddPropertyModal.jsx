@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createProperty } from "../../api/property";
 import useAuthStore from "../../stores/authStore";
 import { toast } from "react-toastify";
+import useSubmitLockStore from "@/stores/submitLockStore";
 
 const AddPropertyModal = ({ open, onClose, ownerId }) => {
   const token = useAuthStore((state) => state.token);
@@ -22,6 +23,9 @@ const AddPropertyModal = ({ open, onClose, ownerId }) => {
     isOccupied: false,
   });
 
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
+
   const mutation = useMutation({
     mutationFn: (data) => createProperty({ ownerId, values: data, token }),
     onSuccess: () => {
@@ -31,7 +35,7 @@ const AddPropertyModal = ({ open, onClose, ownerId }) => {
     },
     onError: () => {
       toast.error("Erreur lors de l'ajout de la propriété");
-    }
+    },
   });
 
   const handleChange = (e) => {
@@ -41,7 +45,17 @@ const AddPropertyModal = ({ open, onClose, ownerId }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(form);
+    if (isLocked("add-property") || mutation.isLoading) return;
+    withLock(
+      "add-property",
+      () =>
+        new Promise((resolve) =>
+          mutation.mutate(form, {
+            onSettled: resolve,
+          })
+        ),
+      200
+    );
   };
 
   return (
@@ -165,9 +179,10 @@ const AddPropertyModal = ({ open, onClose, ownerId }) => {
             </button>
             <button
               type="submit"
-              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition"
+              disabled={isLocked("add-property") || mutation.isLoading}
+              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 transition disabled:opacity-60"
             >
-              Ajouter
+              {isLocked("add-property") || mutation.isLoading ? "Ajout..." : "Ajouter"}
             </button>
           </div>
         </form>
