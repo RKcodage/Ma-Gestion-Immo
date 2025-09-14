@@ -7,6 +7,7 @@ import Testimonies from "../components/homepage/Testimonies";
 import Footer from "../components/homepage/Footer";
 import SEO from "../components/SEO/SEO";
 import Reveal from "@/components/animations/Reveal";
+import FeaturesComparison from "../components/homepage/FeaturesComparison";
 
 
 const Home = () => {
@@ -28,12 +29,16 @@ const Home = () => {
         <Difficulties />
       </Reveal>
 
-      <Reveal from="up" delay={0.5} amount={0.2}>
-        <Cta />
+      <Reveal from="up" delay={0.2} amount={0.2}>
+        <FeaturesComparison />
       </Reveal>
 
       <Reveal from="up" delay={0.5} amount={0.2}>
         <Testimonies />
+      </Reveal>
+      
+      <Reveal from="up" delay={0.5} amount={0.2}>
+        <Cta />
       </Reveal>
       <Footer />
     </div>
