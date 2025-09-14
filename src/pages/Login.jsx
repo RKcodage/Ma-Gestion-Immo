@@ -3,10 +3,14 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import useAuthStore from "../stores/authStore";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import SEO from "../components/SEO/SEO";
+import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
+  const visible = usePasswordVisibilityStore((s) => Boolean(s.vis?.["login.password"]));
+  const toggle = usePasswordVisibilityStore((s) => s.toggle);
 
   const navigate = useNavigate();
   // Use store
@@ -56,6 +60,12 @@ const Login = () => {
 
   return (
     <div className="flex h-screen w-full">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Connexion"
+        description="Connectez-vous pour gérer vos biens, baux et documents locatifs."
+        noIndex
+      />
       {/* Left image */}
       <div className="w-[40%] h-full">
         <img
@@ -92,10 +102,15 @@ const Login = () => {
               value={form.email}
               onChange={handleChange}
               required
+              placeholder="gestion@domaine.com"
+              autoComplete="email"
+              inputMode="email"
+              aria-invalid={!!getFieldError("email")}
+              aria-describedby={getFieldError("email") ? "email-error" : undefined}
               className="w-full block px-4 py-2 border rounded"
             />
             {getFieldError("email") && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError("email")}</p>
+              <p id="email-error" role="alert" className="text-red-500 text-sm mt-1">{getFieldError("email")}</p>
             )}
           </div>
 
@@ -104,17 +119,31 @@ const Login = () => {
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Mot de passe
             </label>
-            <input
-              type="password"
-              name="password"
-              id="password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              className="w-full block px-4 py-2 border rounded"
-            />
+            <div className="relative">
+              <input
+                type={visible ? "text" : "password"}
+                name="password"
+                id="password"
+                value={form.password}
+                onChange={handleChange}
+                required
+                placeholder="••••••••"
+                autoComplete="current-password"
+                aria-invalid={!!getFieldError("password")}
+                aria-describedby={getFieldError("password") ? "password-error" : undefined}
+                className="w-full block px-4 py-2 border rounded pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => toggle("login.password")}
+                aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-500 hover:text-gray-700"
+              >
+                {visible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             {getFieldError("password") && (
-              <p className="text-red-500 text-sm mt-1">
+              <p id="password-error" role="alert" className="text-red-500 text-sm mt-1">
                 {getFieldError("password")}
               </p>
             )}
@@ -129,6 +158,12 @@ const Login = () => {
               {loading ? "Connexion en cours..." : "Se connecter"}
             </button>
           </div>
+
+          <p className="text-center text-sm text-primary">
+            <Link to="/forgot-password" className="text-primary hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </p>
 
           {typeof error === "string" && (
             <p className="text-red-600 text-sm text-center">{error}</p>

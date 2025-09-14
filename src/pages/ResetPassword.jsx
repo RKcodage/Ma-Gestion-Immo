@@ -2,12 +2,18 @@ import { useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import useAuthStore from "../stores/authStore";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import React from "react";
+import SEO from "../components/SEO/SEO";
+import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 
 const ResetPassword = () => {
   const { token } = useParams();
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const [form, setForm] = useState({ newPassword: "", confirmPassword: "" });
+  const visibleNew = usePasswordVisibilityStore((s) => Boolean(s.vis?.["reset.new"]));
+  const visibleConfirm = usePasswordVisibilityStore((s) => Boolean(s.vis?.["reset.confirm"]));
+  const toggle = usePasswordVisibilityStore((s) => s.toggle);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -35,8 +41,19 @@ const ResetPassword = () => {
     }
   };
 
+  const mismatch =
+    (form.newPassword?.length || 0) > 0 &&
+    (form.confirmPassword?.length || 0) > 0 &&
+    form.newPassword !== form.confirmPassword;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Réinitialiser le mot de passe"
+        description="Choisissez un nouveau mot de passe pour sécuriser votre compte."
+        noIndex
+      />
       <div className="max-w-md w-full bg-white p-8 rounded shadow">
         <Link to="/login" className="text-sm text-primary hover:underline mb-4 inline-block">
           <ArrowLeft size={16} className="inline-block mr-1" />
@@ -46,24 +63,57 @@ const ResetPassword = () => {
         <h1 className="text-xl font-bold mb-6">Réinitialiser le mot de passe</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="password"
-            name="newPassword"
-            placeholder="Nouveau mot de passe"
-            className="w-full px-4 py-2 border rounded"
-            value={form.newPassword}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirmer le mot de passe"
-            className="w-full px-4 py-2 border rounded"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            required
-          />
+          <div className="relative">
+            <input
+              type={visibleNew ? "text" : "password"}
+              id="new-password"
+              name="newPassword"
+              placeholder="Nouveau mot de passe"
+              className="w-full px-4 py-2 border rounded pr-10"
+              value={form.newPassword}
+              onChange={handleChange}
+              required
+              autoComplete="new-password"
+              aria-invalid={false}
+            />
+            <button
+              type="button"
+              onClick={() => toggle("reset.new")}
+              aria-label={visibleNew ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-500 hover:text-gray-700"
+            >
+              {visibleNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+
+          <div className="relative">
+            <input
+              type={visibleConfirm ? "text" : "password"}
+              id="confirm-password"
+              name="confirmPassword"
+              placeholder="Confirmer le mot de passe"
+              className="w-full px-4 py-2 border rounded pr-10"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              required
+              autoComplete="new-password"
+              aria-invalid={mismatch}
+              aria-describedby={mismatch ? "confirm-password-error" : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => toggle("reset.confirm")}
+              aria-label={visibleConfirm ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-500 hover:text-gray-700"
+            >
+              {visibleConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          {mismatch && (
+            <p id="confirm-password-error" role="alert" className="text-sm text-red-600">
+              Les mots de passe ne correspondent pas.
+            </p>
+          )}
           <button
             type="submit"
             disabled={loading}

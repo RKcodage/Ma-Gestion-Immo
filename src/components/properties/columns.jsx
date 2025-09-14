@@ -121,11 +121,11 @@ export const columns = (onEdit, onDelete) => [
         <div className="flex items-center gap-2">
           <button
             onClick={() => onEdit(property)}
-            className="p-2 rounded hover:bg-blue-50 transition"
+            className="p-2 rounded hover:bg-gray-100 transition"
             title="Modifier"
             aria-label="Modifier"
           >
-            <DiAptana size={18} className="text-blue-600" />
+            <DiAptana size={18} className="text-gray-600" />
           </button>
 
           <button

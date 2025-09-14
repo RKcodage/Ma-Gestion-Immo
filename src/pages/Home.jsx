@@ -24,15 +24,15 @@ const Home = () => {
         <Services />
       </Reveal>
 
-      <Reveal from="up" delay={0.1} amount={0.2}>
+      <Reveal from="up" delay={1.5} amount={0.2}>
         <Difficulties />
       </Reveal>
 
-      <Reveal from="up" delay={0.15} amount={0.2}>
+      <Reveal from="up" delay={1.5} amount={0.2}>
         <Cta />
       </Reveal>
 
-      <Reveal from="up" delay={0.2} amount={0.2}>
+      <Reveal from="up" delay={1.5} amount={0.2}>
         <Testimonies />
       </Reveal>
       <Footer />

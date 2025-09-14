@@ -11,7 +11,7 @@ import { motion, useReducedMotion } from "framer-motion";
 export default function Reveal({
   children,
   from = "up",
-  delay = 1.5,
+  delay = 0.1,
   duration = 0.6,
   once = true,
   amount = 0.2,

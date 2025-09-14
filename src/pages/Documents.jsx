@@ -17,6 +17,7 @@ import useClickOutside from "../hooks/useClickOutside";
 import { IoIosAddCircle } from "react-icons/io";
 import { ArrowLeft } from "lucide-react";
 import AddActionButton from "@/components/buttons/AddActionButton";
+import SEO from "../components/SEO/SEO";
 
 export default function Documents() {
   const user = useAuthStore((state) => state.user);
@@ -96,6 +97,12 @@ export default function Documents() {
 
   return (
     <div className="px-6 py-2">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Mes documents"
+        description="Centralisez, filtrez et partagez vos documents de location."
+        noIndex
+      />
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => navigate(-1)}
