@@ -5,10 +5,11 @@ import useAuthStore from "../stores/authStore";
 import { fetchLeasesByRole, deleteLease } from "../api/lease";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import UpdateLeaseModal from "../components/modals/UpdateLeaseModal";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, ArrowLeft } from "lucide-react";
 import Select from "@/components/components/ui/select";
 import LeaseCard from "@/components/cards/LeaseCard";
 import { toast } from "react-toastify";
+import SEO from "../components/SEO/SEO";
 
 
 export default function Leases() {
@@ -94,7 +95,24 @@ export default function Leases() {
 
   return (
     <div className="px-6 py-2">
-      <h1 className="text-2xl font-bold mb-8">Mes Locations</h1>
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Mes baux"
+        description="Consultez, filtrez et gérez vos baux et locations."
+        noIndex
+      />
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold">
+          {user?.role === "Propriétaire" ? "Mes Baux" : "Mes Locations"}
+        </h1>
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
