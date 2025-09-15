@@ -124,7 +124,7 @@ const Login = () => {
       <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
         <Link
           to="/"
-          className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
+          className="absolute top-4 left-4 text-gray-900 hover:text-primary flex items-center gap-2"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -132,7 +132,7 @@ const Login = () => {
 
         {/* Login form */}
         <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-md space-y-6" noValidate>
-          <h2 className="text-2xl font-bold text-gray-800 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 text-center">
             Connexion
           </h2>
 
