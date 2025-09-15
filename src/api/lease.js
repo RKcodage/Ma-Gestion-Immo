@@ -61,7 +61,12 @@ export const updateLease = async (leaseId, data, token) => {
   });
 
   if (!response.ok) {
-    throw new Error("Update error");
+    let message = "Update error";
+    try {
+      const payload = await response.json();
+      message = payload?.message || message;
+    } catch {}
+    throw new Error(message);
   }
 
   return response.json();
@@ -76,11 +81,18 @@ export const deleteLease = async (leaseId, token) => {
     },
   });
 
-  if (!response.ok) {
-    throw new Error("Error during lease deleting");
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
   }
 
-  return response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Error while erasing lease");
+  }
+
+  return data;
 };
 
 // Fetch upcoming payments by lease
