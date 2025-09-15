@@ -5,6 +5,7 @@ import useAuthStore from "../stores/authStore";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import React from "react";
 import SEO from "../components/SEO/SEO";
+import { passwordRegex, passwordRequirementsMessage } from "@/utils/passwordPolicy";
 import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 
 const ResetPassword = () => {
@@ -16,6 +17,12 @@ const ResetPassword = () => {
   const toggle = usePasswordVisibilityStore((s) => s.toggle);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Same regex as backend policy (shared util)
+  const newVal = form.newPassword || "";
+  const confirmVal = form.confirmPassword || "";
+  const isNewValid = passwordRegex.test(newVal);
+  const isConfirmValid = isNewValid && confirmVal.length > 0 && confirmVal === newVal;
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -69,12 +76,15 @@ const ResetPassword = () => {
               id="new-password"
               name="newPassword"
               placeholder="Nouveau mot de passe"
-              className="w-full px-4 py-2 border rounded pr-10"
+              className={`w-full px-4 py-2 rounded pr-10 focus:outline-none transition-colors border
+                ${newVal && !isNewValid ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500" : ( isNewValid ? "border-green-500 focus:ring-2 focus:ring-green-500 focus:border-green-500" : "border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary" )}
+              `}
               value={form.newPassword}
               onChange={handleChange}
               required
               autoComplete="new-password"
-              aria-invalid={false}
+              aria-invalid={newVal ? !isNewValid : false}
+              aria-describedby={!isNewValid && newVal ? "new-password-error" : undefined}
             />
             <button
               type="button"
@@ -85,6 +95,11 @@ const ResetPassword = () => {
               {visibleNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
+          {!isNewValid && newVal && (
+            <p id="new-password-error" role="alert" className="text-sm text-red-600">
+              Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial
+            </p>
+          )}
 
           <div className="relative">
             <input
@@ -92,7 +107,9 @@ const ResetPassword = () => {
               id="confirm-password"
               name="confirmPassword"
               placeholder="Confirmer le mot de passe"
-              className="w-full px-4 py-2 border rounded pr-10"
+              className={`w-full px-4 py-2 rounded pr-10 focus:outline-none transition-colors border
+                ${mismatch ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500" : ( isConfirmValid ? "border-green-500 focus:ring-2 focus:ring-green-500 focus:border-green-500" : "border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary" )}
+              `}
               value={form.confirmPassword}
               onChange={handleChange}
               required
