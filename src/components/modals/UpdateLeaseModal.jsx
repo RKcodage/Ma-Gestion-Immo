@@ -3,9 +3,12 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateLease } from "@/api/lease";
 import { toast } from "react-toastify";
+import useSubmitLockStore from "@/stores/submitLockStore";
+import useAuthStore from "@/stores/authStore";
 
 export default function UpdateLeaseModal({ open, onClose, lease, token }) {
   const queryClient = useQueryClient();
+  const user = useAuthStore((s) => s.user);
   const [form, setForm] = useState({
     startDate: "",
     endDate: "",
@@ -37,6 +40,8 @@ export default function UpdateLeaseModal({ open, onClose, lease, token }) {
     },
     onError: () => toast.error("Erreur lors de la mise à jour."),
   });
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,7 +50,22 @@ export default function UpdateLeaseModal({ open, onClose, lease, token }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(form);
+    // UI guard: only owners can update a lease
+    if (user?.role !== "Propriétaire") {
+      toast.error("Action non autorisée");
+      return;
+    }
+    if (isLocked("update-lease") || mutation.isLoading) return;
+    withLock(
+      "update-lease",
+      () =>
+        new Promise((resolve) =>
+          mutation.mutate(form, {
+            onSettled: resolve,
+          })
+        ),
+      200
+    );
   };
 
   return (
@@ -88,7 +108,13 @@ export default function UpdateLeaseModal({ open, onClose, lease, token }) {
 
           <div className="flex justify-end gap-4 pt-4">
             <button type="button" onClick={onClose} className="text-sm text-gray-600 hover:underline">Annuler</button>
-            <button type="submit" className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90">Sauvegarder</button>
+            <button
+              type="submit"
+              disabled={isLocked("update-lease") || mutation.isLoading}
+              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
+            >
+              {isLocked("update-lease") || mutation.isLoading ? "Sauvegarde..." : "Sauvegarder"}
+            </button>
           </div>
         </form>
       </DialogContent>

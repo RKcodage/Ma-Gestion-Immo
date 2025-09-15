@@ -11,7 +11,7 @@ const Header = ({ className = "" }) => {
   return (
     <header className={`absolute top-0 left-0 w-full flex justify-between items-center px-6 py-4 z-40 ${className}`}>
       <Link to="/">
-        <div className="text-white text-2xl font-bold">
+        <div className="text-white text-2xl font-bold leading-none">
           Ma Gestion Immo
         </div>
       </Link>
@@ -20,7 +20,7 @@ const Header = ({ className = "" }) => {
         {isAuthenticated ? (
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4"
+            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4 leading-none"
           >
             Revenir à mon espace
             <span className="w-6 h-6 flex items-center justify-center rounded-full border border-white">
@@ -30,7 +30,7 @@ const Header = ({ className = "" }) => {
         ) : (
           <NavLink
             to="/login"
-            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4"
+            className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4 leading-none"
           >
             Se connecter
             <span className="w-6 h-6 flex items-center justify-center rounded-full border border-white">

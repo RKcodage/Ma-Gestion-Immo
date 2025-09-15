@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 
 const PasswordUpdateModal = ({ onClose, onConfirm, form, setForm, handleChange }) => {
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const visibleOld = usePasswordVisibilityStore((s) => Boolean(s.vis?.["passwordUpdate.old"]));
+  const visibleNew = usePasswordVisibilityStore((s) => Boolean(s.vis?.["passwordUpdate.new"]));
+  const visibleConfirm = usePasswordVisibilityStore((s) => Boolean(s.vis?.["passwordUpdate.confirm"]));
+  const toggle = usePasswordVisibilityStore((s) => s.toggle);
+  const resetVis = usePasswordVisibilityStore((s) => s.reset);
   const [errors, setErrors] = useState({});
 
   const validate = () => {
@@ -16,10 +19,27 @@ const PasswordUpdateModal = ({ onClose, onConfirm, form, setForm, handleChange }
     return Object.keys(newErrors).length === 0;
   };
 
+  const resetAllVisibility = () => {
+    resetVis("passwordUpdate.old");
+    resetVis("passwordUpdate.new");
+    resetVis("passwordUpdate.confirm");
+  };
+
   const handleConfirm = () => {
     if (validate()) {
+      resetAllVisibility();
       onConfirm();
     }
+  };
+
+  const handleClose = () => {
+    resetAllVisibility();
+    // Clear form fields and errors so the modal reopens blank
+    try {
+      setForm && setForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    } catch {}
+    setErrors({});
+    onClose();
   };
 
   return (
@@ -28,69 +48,78 @@ const PasswordUpdateModal = ({ onClose, onConfirm, form, setForm, handleChange }
         <h3 className="text-lg font-semibold mb-4">Modifier le mot de passe</h3>
 
         {/* Mot de passe actuel */}
-        <div className="mb-4 relative">
+        <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Mot de passe actuel</label>
-          <input
-            type={showOldPassword ? "text" : "password"}
-            name="oldPassword"
-            value={form.oldPassword}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded pr-10 ${
-              errors.oldPassword ? "border-red-500" : ""
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowOldPassword(!showOldPassword)}
-            className="absolute right-3 top-6 bottom-0 my-auto flex items-center text-gray-600"
-          >
-            {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+          <div className="relative">
+            <input
+              type={visibleOld ? "text" : "password"}
+              name="oldPassword"
+              value={form.oldPassword}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded pr-10 ${
+                errors.oldPassword ? "border-red-500" : ""
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => toggle("passwordUpdate.old")}
+              aria-label={visibleOld ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              {visibleOld ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.oldPassword && (
             <p className="text-red-500 text-sm mt-1">{errors.oldPassword}</p>
           )}
         </div>
 
         {/* Nouveau mot de passe */}
-        <div className="mb-4 relative">
+        <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Nouveau mot de passe</label>
-          <input
-            type={showNewPassword ? "text" : "password"}
-            name="newPassword"
-            value={form.newPassword}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded pr-10 ${
-              errors.newPassword ? "border-red-500" : ""
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword(!showNewPassword)}
-            className="absolute right-3 top-6 bottom-0 my-auto flex items-center text-gray-600"
-          >
-            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+          <div className="relative">
+            <input
+              type={visibleNew ? "text" : "password"}
+              name="newPassword"
+              value={form.newPassword}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded pr-10 ${
+                errors.newPassword ? "border-red-500" : ""
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => toggle("passwordUpdate.new")}
+              aria-label={visibleNew ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              {visibleNew ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         {/* Confirmation mot de passe */}
-        <div className="mb-6 relative">
+        <div className="mb-6">
           <label className="block text-sm font-medium mb-1">Confirmer le mot de passe</label>
-          <input
-            type={showConfirmPassword ? "text" : "password"}
-            name="confirmPassword"
-            value={form.confirmPassword}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded pr-10 ${
-              errors.confirmPassword ? "border-red-500" : ""
-            }`}
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            className="absolute right-3 top-6 bottom-0 my-auto flex items-center text-gray-600"
-          >
-            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-          </button>
+          <div className="relative">
+            <input
+              type={visibleConfirm ? "text" : "password"}
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              className={`w-full px-4 py-2 border rounded pr-10 ${
+                errors.confirmPassword ? "border-red-500" : ""
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => toggle("passwordUpdate.confirm")}
+              aria-label={visibleConfirm ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 inline-flex items-center justify-center text-gray-600 hover:text-gray-800"
+            >
+              {visibleConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
           {errors.confirmPassword && (
             <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
           )}
@@ -99,7 +128,7 @@ const PasswordUpdateModal = ({ onClose, onConfirm, form, setForm, handleChange }
         {/* Actions */}
         <div className="flex justify-end gap-4">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-sm text-gray-600 hover:underline"
           >
             Annuler
