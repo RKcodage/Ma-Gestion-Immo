@@ -124,7 +124,7 @@ const Signup = () => {
       <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
         <Link
           to="/"
-          className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
+          className="absolute top-4 left-4 text-gray-900 hover:text-primary flex items-center gap-2"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
