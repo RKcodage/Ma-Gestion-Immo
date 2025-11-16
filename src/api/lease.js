@@ -1,6 +1,8 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Create lease
 export const createLease = async (leaseData, token) => {
-  const res = await fetch("http://localhost:4000/lease", {
+  const res = await fetch(`${API_URL}/lease`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -19,7 +21,7 @@ export const createLease = async (leaseData, token) => {
 
 // Get leases from an owner
 export const fetchLeasesByOwner = async (ownerId, token) => {
-  const res = await fetch(`http://localhost:4000/lease/${ownerId}`, {
+  const res = await fetch(`${API_URL}/lease/${ownerId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -34,7 +36,7 @@ export const fetchLeasesByOwner = async (ownerId, token) => {
 
 // Fetch leases by role
 export const fetchLeasesByRole = async (token) => {
-  const res = await fetch("http://localhost:4000/leases", {
+  const res = await fetch(`${API_URL}/leases`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -49,7 +51,7 @@ export const fetchLeasesByRole = async (token) => {
 
 // Update a lease
 export const updateLease = async (leaseId, data, token) => {
-  const response = await fetch(`http://localhost:4000/lease/${leaseId}`, {
+  const response = await fetch(`${API_URL}/lease/${leaseId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -59,7 +61,12 @@ export const updateLease = async (leaseId, data, token) => {
   });
 
   if (!response.ok) {
-    throw new Error("Update error");
+    let message = "Update error";
+    try {
+      const payload = await response.json();
+      message = payload?.message || message;
+    } catch {}
+    throw new Error(message);
   }
 
   return response.json();
@@ -67,23 +74,30 @@ export const updateLease = async (leaseId, data, token) => {
 
 // Delete a lease
 export const deleteLease = async (leaseId, token) => {
-  const response = await fetch(`/lease/${leaseId}`, {
+  const response = await fetch(`${API_URL}/lease/${leaseId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-  if (!response.ok) {
-    throw new Error("Error during lease deleting");
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
   }
 
-  return response.json();
+  if (!response.ok) {
+    throw new Error(data.message || "Error while erasing lease");
+  }
+
+  return data;
 };
 
 // Fetch upcoming payments by lease
 export const fetchUpcomingPayments = async (token) => {
-  const res = await fetch("http://localhost:4000/leases/upcoming-payments", {
+  const res = await fetch(`${API_URL}/leases/upcoming-payments`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -94,4 +108,19 @@ export const fetchUpcomingPayments = async (token) => {
   }
 
   return res.json();
+};
+
+// Fetch payments historic by lease
+export const fetchPaymentsHistoric = async (token) => {
+  const response = await fetch(`${API_URL}/leases/historic`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error while fetching payments historic");
+  }
+
+  return response.json();
 };

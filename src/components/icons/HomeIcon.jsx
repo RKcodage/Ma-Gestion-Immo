@@ -1,3 +1,4 @@
+// Unused - latest toggle menu icon
 import React from "react";
 
 const HomeIcon = ({ className = "w-6 h-6", ...props }) => (

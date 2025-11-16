@@ -1,6 +1,8 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // GET tenant by userId
 export const fetchTenantByUserId = async (userId, token) => {
-  const res = await fetch(`http://localhost:4000/tenant/${userId}`, {
+  const res = await fetch(`${API_URL}/tenant/${userId}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -15,7 +17,7 @@ export const fetchTenantByUserId = async (userId, token) => {
 
 // PUT tenant by userId
 export const updateTenant = async ({ userId, values, token }) => {
-  const res = await fetch(`http://localhost:4000/tenant/${userId}`, {
+  const res = await fetch(`${API_URL}/tenant/${userId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",

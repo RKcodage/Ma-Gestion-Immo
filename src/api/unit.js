@@ -1,6 +1,8 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // Create Unit
 export const createUnit = async (values, token) => {
-  const res = await fetch("http://localhost:4000/unit", {
+  const res = await fetch(`${API_URL}/unit`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -10,7 +12,7 @@ export const createUnit = async (values, token) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la création de l’unité");
+    throw new Error("Error while creating unit");
   }
 
   return res.json();
@@ -18,17 +20,14 @@ export const createUnit = async (values, token) => {
 
 // Get units with lease count
 export const getUnitsWithLeaseCount = async (propertyId, token) => {
-  const res = await fetch(
-    `http://localhost:4000/property/${propertyId}/units`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+  const res = await fetch(`${API_URL}/property/${propertyId}/units`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
-  );
+  });
 
   if (!res.ok) {
-    throw new Error("Erreur lors du chargement des unités");
+    throw new Error("Error while fetching units");
   }
 
   return res.json();
@@ -36,7 +35,7 @@ export const getUnitsWithLeaseCount = async (propertyId, token) => {
 
 // Update unit
 export const updateUnit = async ({ unitId, values, token }) => {
-  const res = await fetch(`http://localhost:4000/unit/${unitId}`, {
+  const res = await fetch(`${API_URL}/unit/${unitId}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -46,7 +45,7 @@ export const updateUnit = async ({ unitId, values, token }) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la mise à jour de l’unité");
+    throw new Error("Error while updating unit");
   }
 
   return res.json();
@@ -54,7 +53,7 @@ export const updateUnit = async ({ unitId, values, token }) => {
 
 // Delete unit
 export const deleteUnit = async (unitId, token) => {
-  const res = await fetch(`http://localhost:4000/unit/${unitId}`, {
+  const res = await fetch(`${API_URL}/unit/${unitId}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -62,7 +61,7 @@ export const deleteUnit = async (unitId, token) => {
   });
 
   if (!res.ok) {
-    throw new Error("Erreur lors de la suppression de l'unité");
+    throw new Error("Error while deleting unit");
   }
 
   return res.json();
