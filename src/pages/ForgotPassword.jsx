@@ -14,8 +14,8 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const message = await forgotPassword(email);
-      toast.success(message, { autoClose: 3000 });
+      await forgotPassword(email);
+      toast.success("Email de réinitialisation envoyé", { autoClose: 3000 });
     } catch (err) {
       toast.error(err.message || "Erreur lors de l'envoi");
     }
@@ -42,7 +42,7 @@ const ForgotPassword = () => {
       <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
         <Link
           to="/login"
-          className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
+          className="absolute top-4 left-4 text-gray-900 hover:text-primary flex items-center gap-2"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -56,7 +56,7 @@ const ForgotPassword = () => {
             Mot de passe oublié
           </h2>
 
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-gray-700 text-center">
             Saisissez votre adresse email, nous vous enverrons un lien de réinitialisation.
           </p>
 
@@ -72,7 +72,7 @@ const ForgotPassword = () => {
             inputMode="email"
             aria-invalid={!!error}
             aria-describedby={error ? "forgot-error" : undefined}
-            className="w-3/4 mx-auto block px-4 py-2 border rounded"
+            className="w-3/4 mx-auto block px-4 py-2 border rounded placeholder-gray-500"
           />
 
           <div className="flex justify-center">
