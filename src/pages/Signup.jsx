@@ -124,7 +124,7 @@ const Signup = () => {
       <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
         <Link
           to="/"
-          className="absolute top-4 left-4 text-gray-600 hover:text-primary flex items-center gap-2"
+          className="absolute top-4 left-4 text-gray-900 hover:text-primary flex items-center gap-2"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Retour</span>
@@ -154,7 +154,7 @@ const Signup = () => {
               aria-invalid={!!errors.email}
               aria-describedby={errors.email ? "email-error" : undefined}
               aria-disabled={!!invitationData?.email}
-              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border 
+              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border placeholder-gray-500 
                 ${errors.email ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500" : ( isEmailValid ? "border-green-500 focus:ring-2 focus:ring-green-500 focus:border-green-500" : "border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary" )}
               `}
               disabled={!!invitationData?.email}
@@ -179,7 +179,7 @@ const Signup = () => {
                 autoComplete="new-password"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "password-error" : undefined}
-                className={`w-full block px-4 py-2 rounded pr-10 focus:outline-none transition-colors border
+                className={`w-full block px-4 py-2 rounded pr-10 focus:outline-none transition-colors border placeholder-gray-500 
                   ${errors.password ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500" : ( isPassValid ? "border-green-500 focus:ring-2 focus:ring-green-500 focus:border-green-500" : "border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary" )}
                 `}
               />
@@ -208,7 +208,7 @@ const Signup = () => {
               autoComplete="given-name"
               aria-invalid={!!errors?.profile?.firstName}
               aria-describedby={errors?.profile?.firstName ? "profile.firstName-error" : undefined}
-              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border
+              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border placeholder-gray-500 
                 ${errors?.profile?.firstName
                   ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   : firstVal
@@ -232,7 +232,7 @@ const Signup = () => {
               autoComplete="family-name"
               aria-invalid={!!errors?.profile?.lastName}
               aria-describedby={errors?.profile?.lastName ? "profile.lastName-error" : undefined}
-              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border
+              className={`w-full block px-4 py-2 rounded focus:outline-none transition-colors border placeholder-gray-500 
                 ${errors?.profile?.lastName
                   ? "border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   : lastVal
