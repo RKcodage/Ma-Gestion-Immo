@@ -19,6 +19,7 @@ import { ArrowLeft, HelpCircle } from "lucide-react";
 // Tooltip
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/components/ui/tooltip";
 import AddActionButton from "@/components/buttons/AddActionButton";
+import SEO from "../components/SEO/SEO";
 
 export default function Properties() {
   const navigate = useNavigate();
@@ -95,6 +96,12 @@ export default function Properties() {
 
   return (
     <div className="px-6 py-2">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Mes propriétés"
+        description="Gérez vos propriétés, unités et baux depuis votre tableau de bord."
+        noIndex
+      />
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => navigate(-1)}
@@ -128,7 +135,7 @@ export default function Properties() {
                   <HelpCircle className="w-4 h-4 text-white" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">
+              <TooltipContent side="right" className="text-black bg-white border border-gray-200 shadow-lg pointer-events-none">
                 Cliquez sur l’adresse d’une propriété pour créer des unités et des baux.
               </TooltipContent>
             </Tooltip>

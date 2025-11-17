@@ -17,9 +17,9 @@ export default function KpiCard({ icon, label, value, hint, className, dataTour,
           {icon}
         </div>
         <div className="min-w-0">
-          <div className="text-sm text-gray-500 truncate">{label}</div>
+          <div className="text-sm text-gray-700 truncate">{label}</div>
           <div className="text-xl font-semibold text-gray-900 leading-tight truncate">{value ?? "—"}</div>
-          {hint ? <div className="text-xs text-gray-400 truncate mt-0.5">{hint}</div> : null}
+          {hint ? <div className="text-xs text-gray-500 truncate mt-0.5">{hint}</div> : null}
         </div>
       </div>
     </div>

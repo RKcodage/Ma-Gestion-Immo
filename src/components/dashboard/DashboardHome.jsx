@@ -15,6 +15,7 @@ import CreateLeaseModal from "../modals/CreateLeaseModal";
 import AddDocumentModal from "../modals/AddDocumentModal";
 import { fetchOwnerByUserId } from "../../api/owner";
 import KpiDetailsModal from "../modals/KpiDetailsModal";
+import SEO from "../SEO/SEO";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
@@ -91,6 +92,12 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Tableau de bord"
+        description="Vue d’ensemble de vos propriétés, baux, paiements, documents et messages."
+        noIndex
+      />
       <h2 className="text-2xl font-bold text-gray-800">
         Bonjour {user.profile?.firstName ?? "Utilisateur"} 👋
       </h2>

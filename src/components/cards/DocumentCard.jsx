@@ -3,7 +3,7 @@ import {
   FileText, MapPin, Tag, Users, CalendarDays,
   Download, Trash2, Lock
 } from "lucide-react";
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/components/ui/tooltip";
+import ActionIconButton from "@/components/buttons/ActionIconButton";
 
 function formatDate(value) {
   const d = new Date(value);
@@ -73,7 +73,7 @@ export default function DocumentCard({
         </div>
       </div>
 
-      {/* Meta */}
+      {/* Docs infos */}
       <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-gray-400" />
@@ -101,7 +101,7 @@ export default function DocumentCard({
                     type="button"
                     tabIndex={0}
                     aria-label={`+${extraCount} colocataire${extraCount > 1 ? "s" : ""}`}
-                    className="ml-1 inline-flex items-center justify-center rounded-full bg-gray-100 text-gray-700 px-2 py-0.5 text-xs font-medium border border-gray-200 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    className="ml-1 inline-flex items-center justify-center rounded-full bg-primary text-white px-2 py-0.5 text-xs font-medium hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40"
                   >
                     +{extraCount}
                   </button>
@@ -132,49 +132,20 @@ export default function DocumentCard({
 
       {/* Actions */}
       <div className="mt-4 flex items-center justify-end gap-2">
-        <button
-          type="button"
+        <ActionIconButton
+          label="Télécharger"
+          icon={Download}
           onClick={() => onDownload?.(doc)}
-          className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-primary hover:bg-primary/80"
-          title="Télécharger"
-          aria-label="Télécharger"
-        >
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline">Télécharger</span>
-        </button>
-
-        {canDelete ? (
-          <button
-            type="button"
-            onClick={() => onDelete?.(doc)}
-            className="inline-flex items-center gap-2 px-3 py-2 text-sm text-white rounded-md bg-red-600 hover:bg-red-600/80"
-            title="Supprimer"
-            aria-label="Supprimer"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Supprimer</span>
-          </button>
-        ) : (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  aria-disabled="true"
-                  disabled
-                  // Disabled style to signal non-actionable state
-                  className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-md border border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">Supprimer</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                Seul l'utilisateur ayant ajouté le document peut le supprimer
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+          variant="primary"
+        />
+        <ActionIconButton
+          label="Supprimer"
+          icon={Trash2}
+          onClick={() => onDelete?.(doc)}
+          variant="danger"
+          disabled={!canDelete}
+          tooltipWhenDisabled={"Seul l'utilisateur ayant ajouté le document peut le supprimer"}
+        />
       </div>
     </div>
   );

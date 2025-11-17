@@ -22,6 +22,7 @@ import CreateLeaseModal from "../components/modals/CreateLeaseModal";
 import { IoIosAddCircle } from "react-icons/io";
 import AddActionButton from "@/components/buttons/AddActionButton";
 import { ArrowLeft } from "lucide-react";
+import SEO from "../components/SEO/SEO";
 
 export default function PropertyDetails() {
   const queryClient = useQueryClient();
@@ -102,6 +103,12 @@ export default function PropertyDetails() {
 
   return (
     <div className="px-6">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Détails de la propriété"
+        description="Consultez les informations, unités et baux liés à cette propriété."
+        noIndex
+      />
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={() => navigate(-1)}
@@ -201,7 +208,12 @@ export default function PropertyDetails() {
           }}
           unit={unitToEdit}
           onSubmit={(updatedData) =>
-            updateMutation.mutate({ unitId: unitToEdit._id, updatedData })
+            new Promise((resolve) =>
+              updateMutation.mutate(
+                { unitId: unitToEdit._id, updatedData },
+                { onSettled: resolve }
+              )
+            )
           }
         />
       )}

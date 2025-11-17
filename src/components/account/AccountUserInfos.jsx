@@ -107,7 +107,8 @@ const AccountUserInfos = ({ avatarError, fileInputRef, handleFileChange }) => {
       return toast.error("Les mots de passe ne correspondent pas.");
     }
 
-    passwordMutation.mutate({
+    // Return a promise so the modal can react after success
+    return passwordMutation.mutateAsync({
       oldPassword: passwordForm.oldPassword,
       password: passwordForm.newPassword,
     });
