@@ -2,10 +2,16 @@ import React from 'react'
 import Header from '@/components/homepage/Header'
 import Footer from '../components/homepage/Footer'
 import { Link } from 'react-router-dom'
+import SEO from "../components/SEO/SEO";
 
 const LegalMentions = () => {
   return (
     <div>
+      {/* Page SEO  */}
+      <SEO
+        title="Ma Gestion Immo — Mentions légales"
+        description="Mentions légales de Ma Gestion Immo : éditeur du site, responsable de la publication, hébergeur, propriété intellectuelle et données personnelles."
+      />
       <Header className="bg-primary h-[80px] shadow-lg"/>
 
       <div className="max-w-4xl mx-auto px-6 py-16 mt-16 text-gray-800">

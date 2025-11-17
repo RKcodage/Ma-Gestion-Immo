@@ -10,6 +10,7 @@ import {
 } from "@/api/chat";
 import NewConversationModal from "../components/modals/NewConversationModal";
 import socket from "../socketClient";
+import SEO from "../components/SEO/SEO";
 
 export default function Chat() {
   const {
@@ -183,6 +184,12 @@ export default function Chat() {
 
   return (
     <div className="h-[calc(100vh-120px)] flex border rounded overflow-hidden">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Messagerie"
+        description="Discutez en temps réel avec vos locataires ou propriétaires."
+        noIndex
+      />
       {/* Sidebar */}
       <aside className="w-1/3 border-r bg-white overflow-y-auto">
         <div className="h-16 p-4 border-b flex justify-between items-center">
