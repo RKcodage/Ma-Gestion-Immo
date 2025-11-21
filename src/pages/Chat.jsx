@@ -10,6 +10,8 @@ import {
 } from "@/api/chat";
 import NewConversationModal from "../components/modals/NewConversationModal";
 import socket from "../socketClient";
+import SEO from "../components/SEO/SEO";
+import { ArrowLeft } from "lucide-react";
 
 export default function Chat() {
   const {
@@ -30,6 +32,7 @@ export default function Chat() {
   const [sendError, setSendError] = useState(null);
   const [cooldown, setCooldown] = useState(0); 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
 
   
 
@@ -45,7 +48,7 @@ export default function Chat() {
     enabled: !!selectedConversation && !!token,
   });
 
-  // helpers pour détecter le rate limit & extraire Retry-After
+  // helpers to detect rate limit and extract Retry-After
   const isRateLimitedError = (err) =>
     err?.response?.status === 429 ||
     err?.status === 429 ||
@@ -56,7 +59,7 @@ export default function Chat() {
   const getRetryAfterSeconds = (err) => {
     const headers = err?.response?.headers || {};
     const ra = headers["retry-after"] ?? headers["Retry-After"];
-    if (!ra) return 10; // défaut = 10s
+    if (!ra) return 10; // 10 seconds by default 
     const n = Number(ra);
     if (!Number.isNaN(n)) return Math.max(1, n);
     const dt = new Date(ra);
@@ -67,7 +70,7 @@ export default function Chat() {
     return 10;
   };
 
-  // décrémente le compte à rebours
+// decrement the countdown (rate limit)
   useEffect(() => {
     if (cooldown <= 0) return;
     const id = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
@@ -89,7 +92,7 @@ export default function Chat() {
     onError: (err) => {
       if (isRateLimitedError(err)) {
         const secs = getRetryAfterSeconds(err);
-        setCooldown(secs); // ⬅️ on (ré)active le cooldown
+        setCooldown(secs); // reactivate cooldown
         setSendError(`Trop de messages envoyés. Réessayez dans ${secs}s.`);
       } else {
         setSendError("Impossible d’envoyer le message. Réessayez.");
@@ -111,12 +114,17 @@ export default function Chat() {
     e.preventDefault();
     const content = messageContent.trim();
     if (!content || !selectedConversation || sendMessageMutation.isLoading || cooldown > 0) return;
-    sendMessageMutation.mutate(); // envoi HTTP ; le serveur émettra "new-message"
+    sendMessageMutation.mutate(); 
   };
 
   const handleSelectConversation = (userId) => {
     setSelectedConversation(userId);
     markMessagesAsReadMutation.mutate(userId);
+    clearRealtimeMessages();
+  };
+
+  const handleBackToList = () => {
+    setSelectedConversation(null);
     clearRealtimeMessages();
   };
 
@@ -149,8 +157,14 @@ export default function Chat() {
   }, [selectedConversation, user?._id, addRealtimeMessage]);
 
   useEffect(() => {
-    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ block: "end" });
-  }, [messages, realtimeMessages]);
+    // Always display conversation from the bottom (latest messages)
+    if (messagesContainerRef.current) {
+      const el = messagesContainerRef.current;
+      el.scrollTop = el.scrollHeight;
+    } else if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ block: "end" });
+    }
+  }, [messages, realtimeMessages, selectedConversation]);
 
   // Refresh conversations list when a new incoming message arrives (to update unread state)
   useEffect(() => {
@@ -181,153 +195,208 @@ export default function Chat() {
     })
     .sort((a, b) => new Date(a.sentAt) - new Date(b.sentAt));
 
-  return (
-    <div className="h-[calc(100vh-120px)] flex border rounded overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-1/3 border-r bg-white overflow-y-auto">
-        <div className="h-16 p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Conversations</h2>
+  const renderSidebar = (isMobile) => (
+    <aside
+      className={`${isMobile ? "w-full" : "w-1/3"} border-r bg-white overflow-y-auto`}
+    >
+      <div className="h-16 p-4 border-b flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Conversations</h2>
+        <button
+          className="text-sm text-primary hover:underline"
+          onClick={() => setOpenNewConvModal(true)}
+        >
+          + Nouvelle conversation
+        </button>
+      </div>
+      <ul>
+        {conversationsLoading ? (
+          <p className="text-sm text-gray-500 p-4">Chargement...</p>
+        ) : conversations.length === 0 ? (
+          <p className="text-sm text-gray-500 p-4">Aucune conversation pour le moment</p>
+        ) : (
+          conversations.map((conv) => {
+            const peerId = conv?.user?._id;
+            const last = conv?.lastMessage || null;
+            const lastSenderId =
+              typeof last?.senderId === "object" ? last?.senderId?._id : last?.senderId;
+            const hasUnreadCount =
+              typeof conv?.unreadCount === "number" && conv.unreadCount > 0;
+            const isUnread =
+              hasUnreadCount ||
+              (!!last &&
+                lastSenderId &&
+                lastSenderId !== user?._id &&
+                last?.isRead === false);
+
+            return (
+              <li
+                key={peerId}
+                className={`p-4 cursor-pointer border-b ${
+                  selectedConversation === peerId
+                    ? "bg-gray-100"
+                    : isUnread
+                    ? "bg-indigo-50 hover:bg-indigo-100"
+                    : "hover:bg-gray-50"
+                }`}
+                onClick={() => handleSelectConversation(peerId)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className={`font-medium ${isUnread ? "font-semibold" : ""}`}>
+                    {conv.user?.profile?.firstName} {conv.user?.profile?.lastName}
+                  </div>
+                  {isUnread && (
+                    <span
+                      className="ml-2 inline-block w-2.5 h-2.5 rounded-full bg-primary"
+                      aria-label={
+                        hasUnreadCount
+                          ? `${conv.unreadCount} message(s) non lus`
+                          : "Nouveau message non lu"
+                      }
+                    />
+                  )}
+                </div>
+                <div
+                  className={`text-sm truncate ${
+                    isUnread ? "text-gray-800 font-medium" : "text-gray-500"
+                  }`}
+                >
+                  {last?.content ?? ""}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {last?.sentAt ? new Date(last.sentAt).toLocaleString() : ""}
+                </div>
+              </li>
+            );
+          })
+        )}
+      </ul>
+    </aside>
+  );
+
+  const renderMain = () => (
+    <main className="flex-1 bg-gray-50 flex flex-col">
+      <header className="p-4 border-b bg-white h-16 flex items-center gap-3">
+        {selectedConversation && (
           <button
-            className="text-sm text-primary hover:underline"
-            onClick={() => setOpenNewConvModal(true)}
+            type="button"
+            onClick={handleBackToList}
+            className="md:hidden p-2 -ml-2 rounded-full hover:bg-gray-100"
+            aria-label="Retour aux conversations"
           >
-            + Nouvelle conversation
+            <ArrowLeft className="w-5 h-5" />
           </button>
-        </div>
-        <ul>
-          {conversationsLoading ? (
-            <p className="text-sm text-gray-500 p-4">Chargement...</p>
-          ) : conversations.length === 0 ? (
-            <p className="text-sm text-gray-500 p-4">Aucune conversation pour le moment</p>
-          ) : (
-            conversations.map((conv) => {
-              const peerId = conv?.user?._id;
-              const last = conv?.lastMessage || null;
-              const lastSenderId = typeof last?.senderId === "object" ? last?.senderId?._id : last?.senderId;
-              const hasUnreadCount = typeof conv?.unreadCount === "number" && conv.unreadCount > 0;
-              const isUnread =
-                hasUnreadCount || (!!last && lastSenderId && lastSenderId !== user?._id && last?.isRead === false);
+        )}
+        <h3 className="font-semibold truncate">
+          {selectedConversation
+            ? (() => {
+                const convUser = conversations.find(
+                  (c) => c?.user?._id === selectedConversation,
+                );
+                return convUser
+                  ? `${convUser.user?.profile?.firstName ?? ""} ${
+                      convUser.user?.profile?.lastName ?? ""
+                    }`.trim() || "Conversation inconnue"
+                  : "Conversation inconnue";
+              })()
+            : "Aucune conversation sélectionnée"}
+        </h3>
+      </header>
+
+      {sendError && (
+        <div className="mx-4 mt-3 mb-0 text-sm text-red-600">{sendError}</div>
+      )}
+
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-2"
+      >
+        {messagesLoading ? (
+          <p className="text-center text-gray-400 mt-10">Chargement...</p>
+        ) : allMessages.length === 0 ? (
+          <p className="text-center text-gray-400 mt-10">Aucun message</p>
+        ) : (
+          <>
+            {allMessages.map((msg) => {
+              const senderId =
+                typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
+              const isOwn = senderId === user._id;
 
               return (
-                <li
-                  key={peerId}
-                  className={`p-4 cursor-pointer border-b ${
-                    selectedConversation === peerId
-                      ? "bg-gray-100"
-                      : isUnread
-                      ? "bg-indigo-50 hover:bg-indigo-100"
-                      : "hover:bg-gray-50"
-                  }`}
-                  onClick={() => handleSelectConversation(peerId)}
+                <div
+                  key={
+                    msg._id ||
+                    `${senderId}-${
+                      typeof msg.recipientId === "object"
+                        ? msg.recipientId._id
+                        : msg.recipientId
+                    }-${msg.sentAt}-${msg.content}`
+                  }
+                  className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className={`font-medium ${isUnread ? "font-semibold" : ""}`}>
-                      {conv.user?.profile?.firstName} {conv.user?.profile?.lastName}
-                    </div>
-                    {isUnread && (
-                      <span
-                        className="ml-2 inline-block w-2.5 h-2.5 rounded-full bg-primary"
-                        aria-label={hasUnreadCount ? `${conv.unreadCount} message(s) non lus` : "Nouveau message non lu"}
-                      />
-                    )}
-                  </div>
-                  <div className={`text-sm truncate ${isUnread ? "text-gray-800 font-medium" : "text-gray-500"}`}>
-                    {last?.content ?? ""}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {last?.sentAt ? new Date(last.sentAt).toLocaleString() : ""}
-                  </div>
-                </li>
-              );
-            })
-          )}
-        </ul>
-      </aside>
-
-      {/* Main chat area */}
-      <main className="flex-1 flex flex-col bg-gray-50">
-        <header className="p-4 border-b bg-white h-16 flex items-center">
-          <h3 className="font-semibold">
-            {selectedConversation
-              ? (() => {
-                  const convUser = conversations.find((c) => c.user._id === selectedConversation);
-                  return convUser
-                    ? `${convUser.user.profile.firstName} ${convUser.user.profile.lastName}`
-                    : "Conversation inconnue";
-                })()
-              : "Aucune conversation sélectionnée"}
-          </h3>
-        </header>
-
-        {sendError && (
-          <div className="mx-4 mt-3 mb-0 text-sm text-red-600">{sendError}</div>
-        )}
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {messagesLoading ? (
-            <p className="text-center text-gray-400 mt-10">Chargement...</p>
-          ) : allMessages.length === 0 ? (
-            <p className="text-center text-gray-400 mt-10">Aucun message</p>
-          ) : (
-            <>
-              {allMessages.map((msg) => {
-                const senderId =
-                  typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
-                const isOwn = senderId === user._id;
-
-                return (
                   <div
-                    key={
-                      msg._id ||
-                      `${senderId}-${
-                        typeof msg.recipientId === "object" ? msg.recipientId._id : msg.recipientId
-                      }-${msg.sentAt}-${msg.content}`
-                    }
-                    className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+                    className={`text-sm p-2 rounded shadow max-w-[70%] ${
+                      isOwn ? "bg-blue-100" : "bg-white"
+                    }`}
                   >
-                    <div
-                      className={`text-sm p-2 rounded shadow max-w-[70%] ${
-                        isOwn ? "bg-blue-100" : "bg-white"
-                      }`}
-                    >
-                      {msg.content}
-                    </div>
+                    {msg.content}
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </>
-          )}
-        </div>
-
-        {selectedConversation && (
-          <form className="p-4 border-t bg-white flex gap-2" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              placeholder="Écrire un message..."
-              className="flex-1 border px-4 py-2 rounded"
-              value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
-              disabled={sendMessageMutation.isLoading || cooldown > 0}
-            />
-            <button
-              type="submit"
-              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
-              disabled={
-                sendMessageMutation.isLoading || cooldown > 0 || !messageContent.trim()
-              }
-              aria-disabled={sendMessageMutation.isLoading || cooldown > 0}
-              title={cooldown > 0 ? `Patientez ${cooldown}s` : "Envoyer"}
-            >
-              {sendMessageMutation.isLoading
-                ? "Envoi..."
-                : cooldown > 0
-                ? `Patientez ${cooldown}s`
-                : "Envoyer"}
-            </button>
-          </form>
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
+          </>
         )}
-      </main>
+      </div>
+
+      {selectedConversation && (
+        <form className="p-4 border-t bg-white flex gap-2" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Écrire un message..."
+            className="flex-1 border px-4 py-2 rounded"
+            value={messageContent}
+            onChange={(e) => setMessageContent(e.target.value)}
+            disabled={sendMessageMutation.isLoading || cooldown > 0}
+          />
+          <button
+            type="submit"
+            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
+            disabled={
+              sendMessageMutation.isLoading || cooldown > 0 || !messageContent.trim()
+            }
+            aria-disabled={sendMessageMutation.isLoading || cooldown > 0}
+            title={cooldown > 0 ? `Patientez ${cooldown}s` : "Envoyer"}
+          >
+            {sendMessageMutation.isLoading
+              ? "Envoi..."
+              : cooldown > 0
+              ? `Patientez ${cooldown}s`
+              : "Envoyer"}
+          </button>
+        </form>
+      )}
+    </main>
+  );
+
+  return (
+    <div className="h-[calc(100vh-120px)] border rounded overflow-hidden bg-white flex flex-col">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Messagerie"
+        description="Discutez en temps réel avec vos locataires ou propriétaires."
+        noIndex
+      />
+
+      {/* Mobile layout: soit la liste, soit la conversation */}
+      <div className="flex h-full md:hidden">
+        {!selectedConversation ? renderSidebar(true) : renderMain()}
+      </div>
+
+      {/* Desktop layout: liste + conversation côte à côte */}
+      <div className="hidden md:flex h-full">
+        {renderSidebar(false)}
+        {renderMain()}
+      </div>
 
       <NewConversationModal />
     </div>
