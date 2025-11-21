@@ -97,7 +97,7 @@ const Header = () => {
 
       <div className="flex items-center gap-4 relative">
         {/* Chat icon with unread badge */}
-        <div className="relative">
+        <div className="relative hidden md:block">
           <button
             onClick={() => navigate("/dashboard/chat")}
             className="relative flex items-center justify-center"
@@ -113,7 +113,7 @@ const Header = () => {
         </div>
 
         {/* Notifications icon with badge */}
-        <div className="relative flex items-center justify-center" ref={notifRef}>
+        <div className="relative hidden md:flex items-center justify-center" ref={notifRef}>
           <button
             className="relative"
             onClick={() => setNotifOpen((prev) => !prev)}
@@ -160,22 +160,80 @@ const Header = () => {
             className="flex items-center gap-2 focus:outline-none"
             data-tour="avatar-button"
           >
-            {user?.profile?.avatar ? (
-              <img
-                src={user.profile.avatar}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full object-cover border"
-              />
-            ) : (
-              <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-white font-semibold uppercase">
-                {(user?.profile?.firstName?.[0] || "U") + (user?.profile?.lastName?.[0] || "")}
-              </div>
-            )}
+            <div className="relative">
+              {user?.profile?.avatar ? (
+                <img
+                  src={user.profile.avatar}
+                  alt="Avatar"
+                  className="w-10 h-10 rounded-full object-cover border"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-white font-semibold uppercase">
+                  {(user?.profile?.firstName?.[0] || "U") + (user?.profile?.lastName?.[0] || "")}
+                </div>
+              )}
+              {(unreadChatCount > 0 || unreadCount > 0) && (
+                <span className="md:hidden absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-500 rounded-full" />
+              )}
+            </div>
             <ChevronDown className="w-4 h-4 text-gray-600" />
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg text-sm">
+            <div className="absolute right-0 mt-2 w-64 md:w-48 bg-white border rounded shadow-lg text-sm">
+              {/* Mobile menu: Chat + Notifications */}
+              <Link
+                to="/dashboard/chat"
+                className="md:hidden flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700"
+                onClick={() => setOpen(false)}
+              >
+                <span>Messagerie</span>
+                {unreadChatCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </Link>
+
+              <button
+                className="md:hidden w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700"
+                onClick={() => setNotifOpen((v) => !v)}
+              >
+                <span>Notifications</span>
+                {unreadCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-xs">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Inline notifications list for mobile */}
+              {notifOpen && (
+                <div className="md:hidden max-h-80 overflow-auto border-t">
+                  {notifications.length === 0 ? (
+                    <p className="p-4 text-gray-500 text-sm text-center">Aucune notification</p>
+                  ) : (
+                    <ul className="divide-y">
+                      {notifications.slice(0, 5).map((notif) => (
+                        <li
+                          key={notif._id}
+                          className="px-4 py-3 hover:bg-gray-50 cursor-pointer"
+                          onClick={() => {
+                            markAsReadMutation.mutate(notif._id);
+                            setNotifOpen(false);
+                            setOpen(false);
+                            if (notif.link) navigate(notif.link);
+                          }}
+                        >
+                          <p className="text-sm text-gray-700">{notif.message}</p>
+                          <p className="text-xs text-gray-400">{new Date(notif.createdAt).toLocaleString()}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
               {/* Discover the interface (navigate to dashboard then start the tour) */}
               <button
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
