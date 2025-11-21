@@ -57,7 +57,7 @@ const DashboardTour = () => {
       {
         target: "[data-tour='avatar-button']",
         content:
-          "Gérez votre compte et déconnectez-vous depuis ce menu.",
+          "Gérez votre compte, relancez le tutoriel et déconnectez-vous depuis ce menu.",
         placement: "bottom",
       },
       // KPI cards (skipped automatically if not present)

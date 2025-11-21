@@ -15,6 +15,7 @@ import CreateLeaseModal from "../modals/CreateLeaseModal";
 import AddDocumentModal from "../modals/AddDocumentModal";
 import { fetchOwnerByUserId } from "../../api/owner";
 import KpiDetailsModal from "../modals/KpiDetailsModal";
+import SEO from "../SEO/SEO";
 
 const DashboardHome = () => {
   const user = useAuthStore((state) => state.user);
@@ -91,6 +92,12 @@ const DashboardHome = () => {
 
   return (
     <div className="space-y-6">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Tableau de bord"
+        description="Vue d’ensemble de vos propriétés, baux, paiements, documents et messages."
+        noIndex
+      />
       <h2 className="text-2xl font-bold text-gray-800">
         Bonjour {user.profile?.firstName ?? "Utilisateur"} 👋
       </h2>
@@ -267,7 +274,22 @@ const DashboardHome = () => {
                   );
                   setKpiOpen(true);
                 }}
-              />
+              >
+                {/* Progress bar under percentage */}
+                <div className="mt-2">
+                  <div className="h-2 w-full bg-primary/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-primary rounded-full"
+                      style={{ width: `${Math.max(0, Math.min(100, occupancyRate ?? 0))}%` }}
+                      aria-label="Taux d’occupation"
+                      role="progressbar"
+                      aria-valuenow={occupancyRate ?? 0}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    />
+                  </div>
+                </div>
+              </KpiCard>
             </div>
           );
         })()}
@@ -349,7 +371,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      🕓 Prochaine échéance : {" "}
+                      Prochaine échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
                       </span>
@@ -380,14 +402,10 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      💶 Dernière échéance : {" "}
+                      Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {lease.lastPaymentDate
-                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR", {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                            })
+                          ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")
                           : "Date inconnue"}
                       </span>
                     </div>
@@ -639,7 +657,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      🕓 Prochaine échéance : {" "}
+                      Prochaine échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {new Date(lease.nextPaymentDate).toLocaleDateString("fr-FR")}
                       </span>
@@ -670,7 +688,7 @@ const DashboardHome = () => {
                     <div className="text-primary font-medium text-sm">{lease.propertyAddress}</div>
                     <div className="text-gray-700 text-sm italic">{lease.unitLabel}</div>
                     <div className="text-xs text-gray-500 mt-1">
-                      💶 Dernière échéance : {" "}
+                      Dernière échéance : {" "}
                       <span className="font-semibold text-gray-800">
                         {lease.lastPaymentDate
                           ? new Date(lease.lastPaymentDate).toLocaleDateString("fr-FR")

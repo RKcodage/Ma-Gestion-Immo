@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import useSubmitLockStore from "@/stores/submitLockStore";
 
 const EditUnitModal = ({ open, onClose, unit, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ const EditUnitModal = ({ open, onClose, unit, onSubmit }) => {
     chargesAmount: "",
     description: "",
   });
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
 
   useEffect(() => {
     if (unit) {
@@ -127,10 +130,17 @@ const EditUnitModal = ({ open, onClose, unit, onSubmit }) => {
             Annuler
           </button>
           <button
-            onClick={() => onSubmit(formData)}
-            className="bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded"
+            onClick={() =>
+              withLock(
+                "edit-unit",
+                () => (onSubmit ? onSubmit(formData) : Promise.resolve()),
+                200
+              )
+            }
+            disabled={isLocked("edit-unit")}
+            className="bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded disabled:opacity-60"
           >
-            Enregistrer
+            {isLocked("edit-unit") ? "Enregistrement..." : "Enregistrer"}
           </button>
         </div>
       </div>

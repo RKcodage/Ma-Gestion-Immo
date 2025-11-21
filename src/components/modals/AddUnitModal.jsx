@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/c
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createUnit } from "@/api/unit";
 import { toast } from "react-toastify";
+import useSubmitLockStore from "@/stores/submitLockStore";
 
 const AddUnitModal = ({ open, onClose, propertyId, token }) => {
   const queryClient = useQueryClient();
@@ -16,6 +17,9 @@ const AddUnitModal = ({ open, onClose, propertyId, token }) => {
     chargesAmount: "",
     description: "",
   });
+
+  const isLocked = useSubmitLockStore((s) => s.isLocked);
+  const withLock = useSubmitLockStore((s) => s.withLock);
 
   const mutation = useMutation({
     mutationFn: (data) => createUnit({ ...data, propertyId }, token),
@@ -36,7 +40,17 @@ const AddUnitModal = ({ open, onClose, propertyId, token }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    mutation.mutate(form);
+    if (isLocked("add-unit") || mutation.isLoading) return;
+    withLock(
+      "add-unit",
+      () =>
+        new Promise((resolve) =>
+          mutation.mutate(form, {
+            onSettled: resolve,
+          })
+        ),
+      200
+    );
   };
 
   return (
@@ -121,9 +135,10 @@ const AddUnitModal = ({ open, onClose, propertyId, token }) => {
             </button>
             <button
               type="submit"
-              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90"
+              disabled={isLocked("add-unit") || mutation.isLoading}
+              className="bg-primary text-white px-6 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
             >
-              Ajouter
+              {isLocked("add-unit") || mutation.isLoading ? "Ajout..." : "Ajouter"}
             </button>
           </div>
         </form>
