@@ -114,17 +114,17 @@ export default function Documents() {
         <h1 className="text-2xl font-bold">Mes Documents</h1>
       </div>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <AddActionButton
           onClick={() => setModalOpen(true)}
           label="Ajouter un document"
           icon={IoIosAddCircle}
           variant="primary"
           size="md"
-          className="w-full sm:w-auto"
+          className="self-start"
         />
 
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-3 items-center w-full sm:w-auto">
           <Select
             value={propertyIdFilter || ""}
             onValueChange={(val) =>
