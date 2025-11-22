@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DataTable from "@/components/data-table/DataTable";
 import { columns } from "../components/properties/columns";
-import PropertyCarousel from "../components/properties/PropertyCarousel";
 import PropertyCard from "../components/properties/PropertyCard";
 // Api
 import { fetchPropertiesByOwner, deleteProperty } from "../api/property";
@@ -110,14 +109,6 @@ export default function Properties() {
     return matchSearch && matchCity && matchType && matchOccupied;
   });
 
-  const handleCreateUnit = (property) => {
-    alert("Créer une unité pour : " + property.address);
-  };
-  
-  const handleCreateLease = (property) => {
-    alert("Créer un bail pour : " + property.address);
-  };
-  
   const tableRef = useRef(null);
 
   const handleResetMobileFilters = () => {
