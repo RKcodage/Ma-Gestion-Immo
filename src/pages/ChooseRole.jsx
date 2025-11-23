@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAssignRole } from "../stores/roleStore";
 import useAuthStore from "../stores/authStore";
+import SEO from "../components/SEO/SEO";
 
 const ChooseRole = () => {
   const navigate = useNavigate();
@@ -34,6 +35,12 @@ const ChooseRole = () => {
 
   return (
     <div className="h-screen w-full flex flex-col items-center justify-center gap-10 bg-gray-50 px-4">
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Choisissez votre rôle"
+        description="Sélectionnez votre rôle pour personnaliser votre espace."
+        noIndex
+      />
       <h2 className="text-5xl font-extrabold text-gray-800">Choisissez votre rôle</h2>
 
       <div className="flex gap-10">

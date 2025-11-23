@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { useMutation } from "@tanstack/react-query";
 import useAuthStore from "./authStore";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Create store
 const useRoleStore = create((set) => ({
@@ -21,7 +22,7 @@ export const useAssignRole = () => {
       setLoading(true);
       setError(null);
 
-      const response = await fetch("http://localhost:4000/user/role", {
+      const response = await fetch(`${API_URL}/user/role`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

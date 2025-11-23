@@ -1,19 +1,34 @@
-import React, { useState } from "react";
-import { FileText, Home, MoreVertical } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { FileText, Home, MoreVertical, Pen } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
 } from "../../components/ui/tooltip";
+import useClickOutside from "../../../hooks/useClickOutside";
 
-export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick }) {
+export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick, onDocumentClick }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close the action menu when clicking outside
+  useClickOutside(menuRef, () => setMenuOpen(false));
+
+  // Close the menu with Escape key
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
     <div className="relative bg-white border rounded-lg shadow-sm p-4 space-y-2 w-full max-w-md">
       {/* Dots menu */}
-      <div className="absolute top-2 right-2">
+      <div className="absolute top-2 right-2" ref={menuRef}>
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
           className="text-gray-500 hover:text-gray-700"
@@ -58,22 +73,45 @@ export default function UnitCard({ unit, onDelete, onEdit, onLeaseClick }) {
       {unit.description && <p className="text-sm text-gray-600"><strong>Description :</strong> {unit.description}</p>}
 
       <TooltipProvider>
-        <div className="flex items-center gap-1 text-sm text-gray-700 pt-2">
-          <FileText className="w-4 h-4 text-primary" />
-          {unit.leaseCount > 0 ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="text-primary" onClick={() => onLeaseClick(unit._id)}>
-                  {unit.leaseCount} bail{unit.leaseCount > 1 ? "s" : ""}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Voir les baux de cette unité</p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span>Aucun bail</span>
-          )}
+        <div className="flex items-center gap-4 text-sm text-gray-700 pt-2">
+          <div className="flex items-center gap-1">
+            <Pen className="w-4 h-4 text-primary" />
+            {unit.leaseCount > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-primary" onClick={() => onLeaseClick(unit._id)}>
+                    {unit.leaseCount} {unit.leaseCount > 1 ? "baux" : "bail"}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Voir les baux de cette unité</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>Aucun bail</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <FileText className="w-4 h-4 text-primary" />
+            {unit.documentCount > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    className="text-primary"
+                    onClick={() => onDocumentClick?.(unit._id)}
+                  >
+                    {unit.documentCount} document{unit.documentCount > 1 ? "s" : ""}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Voir les documents de cette unité</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span>Aucun document</span>
+            )}
+          </div>
         </div>
       </TooltipProvider>
     </div>

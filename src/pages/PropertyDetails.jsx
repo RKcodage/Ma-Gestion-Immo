@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
 // Api
 import { getPropertyById } from "../api/property";
 import {
@@ -10,18 +9,20 @@ import {
   deleteUnit,
 } from "../api/unit";
 import { fetchOwnerByUserId } from "@/api/owner"
-
 // Stores
 import useAuthStore from "../stores/authStore";
-
 // Components
 import UnitCard from "../components/properties/units/UnitCard";
-
 // Modals
 import AddUnitModal from "../components/modals/AddUnitModal";
 import ConfirmModal from "../components/modals/ConfirmModal";
 import EditUnitModal from "../components/modals/EditUnitModal";
-import CreateLeaseModal from "../components/modals/CreateLeaseModal"; // ✅
+import CreateLeaseModal from "../components/modals/CreateLeaseModal"; 
+// Icons
+import { IoIosAddCircle } from "react-icons/io";
+import AddActionButton from "@/components/buttons/AddActionButton";
+import { ArrowLeft } from "lucide-react";
+import SEO from "../components/SEO/SEO";
 
 export default function PropertyDetails() {
   const queryClient = useQueryClient();
@@ -29,9 +30,9 @@ export default function PropertyDetails() {
   const { propertyId } = useParams();
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
-  // Modals states
+  // States
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [leaseModalOpen, setLeaseModalOpen] = useState(false); // ✅
+  const [leaseModalOpen, setLeaseModalOpen] = useState(false); 
   const [unitToDelete, setUnitToDelete] = useState(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -72,7 +73,7 @@ export default function PropertyDetails() {
       setConfirmDeleteOpen(false);
     },
     onError: () => {
-      alert("Erreur lors de la suppression.");
+      alert("Error while deleting");
     },
   });
 
@@ -85,7 +86,7 @@ export default function PropertyDetails() {
       setUnitToEdit(null);
     },
     onError: () => {
-      alert("Erreur lors de la mise à jour.");
+      alert("Error while updating");
     },
   });
 
@@ -98,21 +99,29 @@ export default function PropertyDetails() {
   if (isLoading) return <p>Chargement des informations...</p>;
   if (isError || !property) return <p>Erreur : propriété introuvable</p>;
 
+  const hasUnits = Array.isArray(units) && units.length > 0;
+
   return (
     <div className="px-6">
-      {/* BreadCrumb */}
-      <nav className="text-sm text-gray-600 flex items-center space-x-2 mb-6">
-        <Link to="/dashboard" className="hover:underline text-primary font-medium">Tableau de bord</Link>
-        <span>&gt;</span>
-        <Link to="/dashboard/properties" className="hover:underline text-primary font-medium">Propriétés</Link>
-        <span>&gt;</span>
-        <span className="text-gray-800 font-semibold">Détails de la propriété</span>
-      </nav>
-
-      <h1 className="mb-6 text-2xl font-bold">Détails de la propriété</h1>
+      {/* Page SEO */}
+      <SEO
+        title="Ma Gestion Immo — Détails de la propriété"
+        description="Consultez les informations, unités et baux liés à cette propriété."
+        noIndex
+      />
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Retour"
+          className="inline-flex items-center justify-center w-9 h-9 rounded-full border bg-white hover:bg-gray-50"
+        >
+          <ArrowLeft className="w-4 h-4 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold">Détails de la propriété</h1>
+      </div>
 
       {/* Property infos */}
-      <div className="bg-white rounded shadow p-4 border space-y-2 relative">
+      <div className="bg-white rounded shadow px-3 sm:px-4 py-4 border space-y-2">
         <p><strong>Adresse :</strong> {property.address}</p>
         <p><strong>Ville :</strong> {property.city}</p>
         <p><strong>Code postal :</strong> {property.postalCode}</p>
@@ -124,20 +133,24 @@ export default function PropertyDetails() {
         <p><strong>Charges :</strong> {property.charges} €</p>
         <p><strong>Occupée :</strong> {property.isOccupied ? "Oui" : "Non"}</p>
 
-        {/* Buttons */}
-        <div className="absolute bottom-4 right-4 flex gap-3">
-          <button
+        {/* Actions */}
+        <div className="mt-4 flex flex-wrap justify-end gap-2 sm:gap-3">
+          <AddActionButton
             onClick={() => setAddModalOpen(true)}
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
-          >
-            + Ajouter une unité
-          </button>
-          <button
+            label="Ajouter une unité"
+            icon={IoIosAddCircle}
+            variant="primary"
+            size="sm"
+          />
+          <AddActionButton
             onClick={() => setLeaseModalOpen(true)}
-            className="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600"
-          >
-            + Créer un bail
-          </button>
+            label="Créer un bail"
+            icon={IoIosAddCircle}
+            variant="teal"
+            size="sm"
+            disabled={!hasUnits}
+            title={hasUnits ? "Créer un bail" : "Ajoutez d’abord une unité pour créer un bail"}
+          />
         </div>
       </div>
 
@@ -168,6 +181,9 @@ export default function PropertyDetails() {
                 onLeaseClick={(unitId) => {
                   navigate(`/dashboard/leases?unitId=${unitId}`);
                 }}
+                onDocumentClick={(unitId) => {
+                  navigate(`/dashboard/documents?unitId=${unitId}`);
+                }}
               />
             ))}
           </div>
@@ -194,7 +210,12 @@ export default function PropertyDetails() {
           }}
           unit={unitToEdit}
           onSubmit={(updatedData) =>
-            updateMutation.mutate({ unitId: unitToEdit._id, updatedData })
+            new Promise((resolve) =>
+              updateMutation.mutate(
+                { unitId: unitToEdit._id, updatedData },
+                { onSettled: resolve }
+              )
+            )
           }
         />
       )}
