@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DataTable from "@/components/data-table/DataTable";
 import { columns } from "../components/properties/columns";
-import PropertyCarousel from "../components/properties/PropertyCarousel";
+import PropertyCard from "../components/properties/PropertyCard";
 // Api
 import { fetchPropertiesByOwner, deleteProperty } from "../api/property";
 import { fetchOwnerByUserId } from "../api/owner";
@@ -13,9 +13,10 @@ import useAuthStore from "../stores/authStore";
 import AddPropertyModal from "../components/modals/AddPropertyModal";
 import EditPropertyModal from "../components/modals/EditPropertyModal";
 import ConfirmModal from "@/components/modals/ConfirmModal";
+import PropertyFiltersModal from "../components/modals/PropertyFiltersModal";
 // Icons
 import { IoIosAddCircle } from "react-icons/io";
-import { ArrowLeft, HelpCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 // Tooltip
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/components/ui/tooltip";
 import AddActionButton from "@/components/buttons/AddActionButton";
@@ -27,6 +28,12 @@ export default function Properties() {
   const token = useAuthStore((state) => state.token);
 
   const [search, setSearch] = useState("");
+  const [mobileFilters, setMobileFilters] = useState({
+    city: "",
+    type: "",
+    occupied: "all", // all | occupied | available
+  });
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -77,19 +84,37 @@ export default function Properties() {
     }
   };
 
-  const filteredProperties = properties.filter((property) =>
-    property.address.toLowerCase().includes(search.toLowerCase())
+  const uniqueCities = Array.from(
+    new Set(properties.map((p) => p.city).filter(Boolean)),
+  );
+  const uniqueTypes = Array.from(
+    new Set(properties.map((p) => p.type).filter(Boolean)),
   );
 
-  const handleCreateUnit = (property) => {
-    alert("Créer une unité pour : " + property.address);
-  };
-  
-  const handleCreateLease = (property) => {
-    alert("Créer un bail pour : " + property.address);
-  };
-  
+  const filteredProperties = properties.filter((property) => {
+    const q = search.toLowerCase();
+    const matchSearch =
+      !q ||
+      property.address.toLowerCase().includes(q) ||
+      (property.city || "").toLowerCase().includes(q) ||
+      String(property.postalCode || "").includes(q);
+
+    const matchCity = !mobileFilters.city || property.city === mobileFilters.city;
+    const matchType = !mobileFilters.type || property.type === mobileFilters.type;
+    const matchOccupied =
+      mobileFilters.occupied === "all" ||
+      (mobileFilters.occupied === "occupied" && property.isOccupied) ||
+      (mobileFilters.occupied === "available" && !property.isOccupied);
+
+    return matchSearch && matchCity && matchType && matchOccupied;
+  });
+
   const tableRef = useRef(null);
+
+  const handleResetMobileFilters = () => {
+    setSearch("");
+    setMobileFilters({ city: "", type: "", occupied: "all" });
+  };
 
   const [hasActiveTableFilters, setHasActiveTableFilters] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -121,22 +146,36 @@ export default function Properties() {
             icon={IoIosAddCircle}
             variant="primary"
             size="md"
-            className="transition flex-1 sm:flex-none"
+            className="transition self-start"
           />
           <TooltipProvider>
-            <Tooltip open={helpOpen} onOpenChange={(o) => { if (!o) setHelpOpen(false); }}>
+            <Tooltip
+              open={helpOpen}
+              onOpenChange={(open) => {
+                if (!open) setHelpOpen(false);
+              }}
+            >
               <TooltipTrigger asChild>
                 <button
                   type="button"
                   aria-label="Aide"
-                  className="rounded-full border border-primary bg-primary hover:bg-primary/90 flex items-center justify-center self-start"
+                  className="rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center self-start w-6 h-6"
                   onClick={() => setHelpOpen((v) => !v)}
                 >
-                  <HelpCircle className="w-4 h-4 text-white" />
+                  <span className="text-xs font-semibold text-white">?</span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="text-black bg-white border border-gray-200 shadow-lg pointer-events-none">
-                Cliquez sur l’adresse d’une propriété pour créer des unités et des baux.
+              <TooltipContent
+                side="bottom"
+                align="start"
+                className="text-black bg-white border border-gray-200 shadow-lg max-w-xs text-xs sm:text-[11px]"
+              >
+                <span className="block md:hidden">
+                  Cliquez sur "voir plus" pour créer des unités et des baux pour cette propriété.
+                </span>
+                <span className="hidden md:block">
+                  Cliquez sur l'adresse d'une propriété pour créer des unités et des baux.
+                </span>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -145,21 +184,29 @@ export default function Properties() {
         <div className="w-full sm:w-auto flex items-center gap-2 text-sm">
           <input
             type="text"
-            placeholder="Rechercher une adresse..."
+            placeholder="Rechercher une adresse, ville..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-72 px-4 py-2 border rounded-md"
           />
           <button
             onClick={() => {
-              setSearch("");
+              handleResetMobileFilters();
               tableRef.current?.resetFilters?.();
             }}
-            className="bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
+            className="hidden sm:inline-flex bg-primary text-white text-sm px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-60"
             disabled={!hasActiveTableFilters && !search}
             aria-disabled={!hasActiveTableFilters && !search}
           >
             Réinitialiser les filtres
+          </button>
+          {/* Bouton filtres mobile */}
+          <button
+            type="button"
+            onClick={() => setMobileFiltersOpen(true)}
+            className="inline-flex sm:hidden items-center justify-center text-sm px-4 py-2 border rounded-md bg-white"
+          >
+            Filtres
           </button>
         </div>
       </div>
@@ -169,21 +216,38 @@ export default function Properties() {
       ) : isError ? (
         <p>Erreur lors du chargement des propriétés.</p>
       ) : (
-        <DataTable
-          ref={tableRef}
-          data={filteredProperties}
-          columns={columns(handleEdit, handleDelete)}
-          onFiltersChange={(filters) => setHasActiveTableFilters((filters?.length || 0) > 0)}
-        />
-      )}
+        <>
+          {/* Desktop */}
+          <div className="hidden md:block">
+            <DataTable
+              ref={tableRef}
+              data={filteredProperties}
+              columns={columns(handleEdit, handleDelete)}
+              onFiltersChange={(filters) =>
+                setHasActiveTableFilters((filters?.length || 0) > 0)
+              }
+            />
+          </div>
 
-{filteredProperties.length > 0 && (
-  <PropertyCarousel
-    properties={filteredProperties}
-    onCreateUnit={(property) => console.log("Créer unité pour", property)}
-    onCreateLease={(property) => console.log("Créer bail pour", property)}
-  />
-)}
+          {/* Mobile */}
+          <div className="grid gap-4 md:hidden">
+            {filteredProperties.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                Aucune propriété trouvée.
+              </p>
+            ) : (
+              filteredProperties.map((property) => (
+                <PropertyCard
+                  key={property._id}
+                  property={property}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            )}
+          </div>
+        </>
+      )}
 
 
       {/* Add Modal */}
@@ -215,6 +279,17 @@ export default function Properties() {
           onCancel={() => setConfirmDeleteOpen(false)}
         />
       )}
+
+      {/* Properties filters Modal */}
+      <PropertyFiltersModal
+        open={mobileFiltersOpen}
+        filters={mobileFilters}
+        onFiltersChange={setMobileFilters}
+        onReset={handleResetMobileFilters}
+        onClose={() => setMobileFiltersOpen(false)}
+        cities={uniqueCities}
+        types={uniqueTypes}
+      />
     </div>
   );
 }
