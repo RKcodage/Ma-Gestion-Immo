@@ -36,6 +36,7 @@ import ScrollToTop from './utils/ScrollToTop';
 // Protected routes
 import RoleRoute from './routes/RoleRoute';
 import OwnerRoute from './routes/OwnerRoute';
+import PrivateRoute from './routes/PrivateRoute';
 
 function App() {
 
@@ -69,7 +70,14 @@ function App() {
             </RoleRoute>
           }
         />
-        <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <DashboardLayout />
+            </PrivateRoute>
+          }
+        >
           <Route index element={<DashboardHome />} />
           <Route path="account" element={<UserAccount />} />
           <Route path="properties" element={
