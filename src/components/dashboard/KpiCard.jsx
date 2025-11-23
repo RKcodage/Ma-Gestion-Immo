@@ -1,7 +1,7 @@
 import { cn } from "@/components/lib/utils";
 
 // KPI card for dashboard metrics
-export default function KpiCard({ icon, label, value, hint, className, dataTour, onClick }) {
+export default function KpiCard({ icon, label, value, hint, className, dataTour, onClick, children }) {
   
   return (
     <div
@@ -19,6 +19,7 @@ export default function KpiCard({ icon, label, value, hint, className, dataTour,
         <div className="min-w-0">
           <div className="text-sm text-gray-700 truncate">{label}</div>
           <div className="text-xl font-semibold text-gray-900 leading-tight truncate">{value ?? "—"}</div>
+          {children}
           {hint ? <div className="text-xs text-gray-500 truncate mt-0.5">{hint}</div> : null}
         </div>
       </div>

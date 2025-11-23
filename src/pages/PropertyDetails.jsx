@@ -121,7 +121,7 @@ export default function PropertyDetails() {
       </div>
 
       {/* Property infos */}
-      <div className="bg-white rounded shadow p-4 border space-y-2 relative">
+      <div className="bg-white rounded shadow px-3 sm:px-4 py-4 border space-y-2">
         <p><strong>Adresse :</strong> {property.address}</p>
         <p><strong>Ville :</strong> {property.city}</p>
         <p><strong>Code postal :</strong> {property.postalCode}</p>
@@ -133,19 +133,21 @@ export default function PropertyDetails() {
         <p><strong>Charges :</strong> {property.charges} €</p>
         <p><strong>Occupée :</strong> {property.isOccupied ? "Oui" : "Non"}</p>
 
-        {/* Buttons */}
-        <div className="absolute bottom-4 right-4 flex gap-3">
+        {/* Actions */}
+        <div className="mt-4 flex flex-wrap justify-end gap-2 sm:gap-3">
           <AddActionButton
             onClick={() => setAddModalOpen(true)}
             label="Ajouter une unité"
             icon={IoIosAddCircle}
             variant="primary"
+            size="sm"
           />
           <AddActionButton
             onClick={() => setLeaseModalOpen(true)}
             label="Créer un bail"
             icon={IoIosAddCircle}
             variant="teal"
+            size="sm"
             disabled={!hasUnits}
             title={hasUnits ? "Créer un bail" : "Ajoutez d’abord une unité pour créer un bail"}
           />

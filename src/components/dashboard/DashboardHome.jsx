@@ -274,7 +274,22 @@ const DashboardHome = () => {
                   );
                   setKpiOpen(true);
                 }}
-              />
+              >
+                {/* Progress bar under percentage */}
+                <div className="mt-2">
+                  <div className="h-2 w-full bg-primary/20 rounded-full overflow-hidden">
+                    <div
+                      className="h-2 bg-primary rounded-full"
+                      style={{ width: `${Math.max(0, Math.min(100, occupancyRate ?? 0))}%` }}
+                      aria-label="Taux d’occupation"
+                      role="progressbar"
+                      aria-valuenow={occupancyRate ?? 0}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    />
+                  </div>
+                </div>
+              </KpiCard>
             </div>
           );
         })()}
