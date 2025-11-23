@@ -121,7 +121,7 @@ const useAuthStore = create((set, get) => ({
       set({ token: data.token, loading: false, error: null, errorCode: null });
       get().setUser(data.user);
 
-      // programme la déconnexion à l'expiration
+      // Set deconnection at expiration
       get()._clearTokenTimer();
       get()._startTokenTimer(data.token);
 
@@ -266,11 +266,6 @@ const useAuthStore = create((set, get) => ({
       error: null,
       errorCode: null,
     });
-
-    // redirection vers login
-    if (window.location.pathname !== "/") {
-      window.location.assign("/");
-    }
   },
 }));
 
