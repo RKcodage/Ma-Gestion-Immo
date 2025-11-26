@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { User } from "lucide-react";
 import useAuthStore from "../../stores/authStore";
 
@@ -28,15 +28,15 @@ const Header = ({ className = "" }) => {
             </span>
           </Link>
         ) : (
-          <NavLink
+          <Link
             to="/login"
             className="flex items-center gap-2 text-white text-lg hover:underline underline-offset-4 leading-none"
           >
-            Se connecter
+            <p className="hidden md:flex">Se connecter</p>
             <span className="w-6 h-6 flex items-center justify-center rounded-full border border-white">
               <User size={14} />
             </span>
-          </NavLink>
+          </Link>
         )}
       </div>
     </header>
