@@ -134,7 +134,7 @@ export default function PropertyDetails() {
         <p><strong>Occupée :</strong> {property.isOccupied ? "Oui" : "Non"}</p>
 
         {/* Actions */}
-        <div className="mt-4 flex flex-wrap justify-end gap-2 sm:gap-3">
+        <div className="mt-4 flex flex-wrap justify-center gap-3 sm:gap-3">
           <AddActionButton
             onClick={() => setAddModalOpen(true)}
             label="Ajouter une unité"
