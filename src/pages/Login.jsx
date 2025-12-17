@@ -7,6 +7,7 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import SEO from "../components/SEO/SEO";
 import usePasswordVisibilityStore from "@/stores/passwordVisibilityStore";
 import { useForm } from "react-hook-form";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const visible = usePasswordVisibilityStore((s) => Boolean(s.vis?.["login.password"]));
@@ -15,6 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
   // Use store
   const login = useAuthStore((state) => state.login);
+  const loginWithGoogle = useAuthStore((state) => state.loginWithGoogle);
   const loading = useAuthStore((state) => state.loading);
   const error = useAuthStore((state) => state.error);
   const errorCode = useAuthStore((state) => state.errorCode);
@@ -50,6 +52,27 @@ const Login = () => {
       if (errorCode === "RATE_LIMITED") toast.error(msg, { autoClose: 6000 });
       else toast.error("Échec de la connexion : " + msg, { autoClose: 3500 });
     }
+  };
+
+  const handleGoogleLogin = async (credentialResponse) => {
+    const credential = credentialResponse?.credential;
+    if (!credential) {
+      toast.error("Réponse Google invalide.");
+      return;
+    }
+
+    try {
+      const user = await loginWithGoogle(credential);
+      if (user?.role) navigate("/dashboard");
+      else navigate("/role");
+    } catch (err) {
+      const msg = err?.message || "Connexion Google impossible.";
+      toast.error(msg);
+    }
+  };
+
+  const handleGoogleError = () => {
+    toast.error("Connexion Google annulée.");
   };
 
   // On mount before paint, clear store errors and RHF errors so page re-entry is clean
@@ -207,6 +230,26 @@ const Login = () => {
             >
               {loading || isSubmitting ? "Connexion en cours..." : "Se connecter"}
             </button>
+          </div>
+
+          <div className="flex items-center gap-2 text-gray-400 text-xs uppercase tracking-wide w-3/4 mx-auto">
+            <span className="flex-1 h-px bg-gray-200" aria-hidden="true" />
+            <span>ou</span>
+            <span className="flex-1 h-px bg-gray-200" aria-hidden="true" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleLogin}
+              onError={handleGoogleError}
+              useOneTap
+              locale="fr"
+              theme="outline"
+              size="large"
+              shape="pill"
+              text="continue_with"
+              width="280"
+            />
           </div>
 
           <p className="text-center text-sm text-primary">
