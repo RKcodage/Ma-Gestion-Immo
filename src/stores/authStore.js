@@ -121,7 +121,7 @@ const useAuthStore = create((set, get) => ({
       set({ token: data.token, loading: false, error: null, errorCode: null });
       get().setUser(data.user);
 
-      // programme la déconnexion à l'expiration
+      // Set deconnection at expiration
       get()._clearTokenTimer();
       get()._startTokenTimer(data.token);
 
@@ -202,6 +202,47 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // LOGIN USING GOOGLE OAUTH
+  loginWithGoogle: async (credential) => {
+    if (!credential) {
+      const msg = "Missing Google token.";
+      set({ error: msg, errorCode: "GOOGLE_FAILED" });
+      throw new Error(msg);
+    }
+
+    set({ loading: true, error: null, errorCode: null });
+
+    try {
+      const response = await fetch(`${API_URL}/user/login/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data?.token || !data?.user) {
+        const msg = data?.message || "Google login failed. Please try again.";
+        set({ loading: false, error: msg, errorCode: "GOOGLE_FAILED" });
+        throw new Error(msg);
+      }
+
+      localStorage.setItem("token", data.token);
+      set({ token: data.token, loading: false, error: null, errorCode: null });
+      get().setUser(data.user);
+      get()._clearTokenTimer();
+      get()._startTokenTimer(data.token);
+
+      return data.user;
+    } catch (error) {
+      if (get().errorCode !== "GOOGLE_FAILED") {
+        const msg = error?.message || "Google login failed. Please try again.";
+        set({ loading: false, error: msg, errorCode: "GOOGLE_FAILED" });
+      }
+      throw error;
+    }
+  },
+
   // FORGOT PASSWORD
   forgotPassword: async (email) => {
     set({ loading: true, error: null, errorCode: null });
@@ -266,11 +307,6 @@ const useAuthStore = create((set, get) => ({
       error: null,
       errorCode: null,
     });
-
-    // redirection vers login
-    if (window.location.pathname !== "/") {
-      window.location.assign("/");
-    }
   },
 }));
 

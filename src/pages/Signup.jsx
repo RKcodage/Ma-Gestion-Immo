@@ -112,7 +112,7 @@ const Signup = () => {
         noIndex
       />
       {/* Left image */}
-      <div className="w-[40%] h-full">
+      <div className="hidden md:block md:w-[40%] h-full">
         <img
           src="/images/signup.jpg"
           alt="Signup illustration"
@@ -121,7 +121,7 @@ const Signup = () => {
       </div>
 
       {/* Signup form */}
-      <div className="w-[60%] flex flex-col items-center justify-center px-8 relative">
+      <div className="w-full md:w-[60%] flex flex-col items-center justify-center px-8 relative">
         <Link
           to="/"
           className="absolute top-4 left-4 text-gray-900 hover:text-primary flex items-center gap-2"
